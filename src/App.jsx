@@ -19,9 +19,8 @@ const formatRelativeTime = (timestamp) => {
   return `${elapsedDays}일 전`;
 };
 
-// 두 지점 간의 거리(km) 계산 함수 (Haversine formula)
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371; // 지구 반지름 (km)
+  const R = 6371; 
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =
@@ -35,11 +34,10 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 };
 
 function AppMain() {
-  const [mainTab, setMainTab] = useState('map');
-
+  const [mainTab, setMainTab] = useState('walk'); 
   const [currentUser, setCurrentUser] = useState(() => {
     try {
-      return localStorage.getItem('pet_map_user') || '';
+      return localStorage.getItem('pet_map_user') || '테스트유저'; 
     } catch (e) {
       return '';
     }
@@ -48,15 +46,18 @@ function AppMain() {
   const [userProfile, setUserProfile] = useState(() => {
     try {
       const saved = localStorage.getItem('pet_map_user_profile');
-      return saved ? JSON.parse(saved) : null;
+      return saved ? JSON.parse(saved) : {
+        nickname: '테스트유저',
+        gender: '여성',
+        dogBreed: '말티즈',
+        profileImg: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150'
+      };
     } catch (e) {
       return null;
     }
   });
 
-  // 현재 사용자 위치(GPS) 상태 관리 (10km 반경 필터용)
   const [userLocation, setUserLocation] = useState(null);
-
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editNickname, setEditNickname] = useState('');
   const [editGender, setEditGender] = useState('여성');
@@ -66,15 +67,10 @@ function AppMain() {
 
   useEffect(() => {
     const savedUser = localStorage.getItem('pet_map_user');
-    if (savedUser) {
-      setCurrentUser(savedUser);
-    }
+    if (savedUser) setCurrentUser(savedUser);
     const savedProfile = localStorage.getItem('pet_map_user_profile');
-    if (savedProfile) {
-      setUserProfile(JSON.parse(savedProfile));
-    }
+    if (savedProfile) setUserProfile(JSON.parse(savedProfile));
 
-    // 앱 실행 시 사용자 현재 위치 가져오기 시도
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -102,9 +98,9 @@ function AppMain() {
 
   const [newPostTitle, setNewPostTitle] = useState('');
   const [newPostContent, setNewPostContent] = useState('');
-  const [newPostType, setNewPostType] = useState('동네산책 같이해요'); // 산책 유형 선택 state
-  const [walkFilterType, setWalkFilterType] = useState('all'); // 키워드 필터 (all, 동네산책 같이해요, 산책 대행)
-  const [walkScopeFilter, setWalkScopeFilter] = useState('all'); // 범위 필터 (all, local)
+  const [newPostType, setNewPostType] = useState('동네산책 같이해요'); 
+  const [walkFilterType, setWalkFilterType] = useState('all'); 
+  const [walkScopeFilter, setWalkScopeFilter] = useState('all'); 
 
   const [editingPostId, setEditingPostId] = useState(null);
   const [commentInputs, setCommentInputs] = useState({});
@@ -113,13 +109,11 @@ function AppMain() {
   const mapRef = useRef(null); 
   const markersRef = useRef([]); 
   const currentOverlayRef = useRef(null);
-  
   const currentOverlayPlaceIdRef = useRef(null);
   const gpsMarkerRef = useRef(null);
   
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [activeTab, setActiveTab] = useState('info');
-  
   const [reviewInput, setReviewInput] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   
@@ -137,8 +131,8 @@ function AppMain() {
   }
 
   const allFetchedPlacesRef = useRef([]);
-  
   const activeFilterRef = useRef(activeFilter);
+  
   useEffect(() => {
     activeFilterRef.current = activeFilter;
   }, [activeFilter]);
@@ -154,7 +148,7 @@ function AppMain() {
 
   const handleKakaoLogin = () => {
     const REST_API_KEY = "134311da296aade3f691343d92d9f168";
-    const REDIRECT_URI = "https://pet-walk-map.vercel.app/oauth/kakao/callback";
+    const REDIRECT_URI = "http://localhost:5173/oauth/kakao/callback";
     const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
     window.location.href = kakaoAuthUrl;
   };
@@ -186,9 +180,7 @@ function AppMain() {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditProfileImg(reader.result);
-      };
+      reader.onloadend = () => setEditProfileImg(reader.result);
       reader.readAsDataURL(file);
     }
   };
@@ -223,7 +215,6 @@ function AppMain() {
     setCurrentUser(trimmed);
     localStorage.setItem('pet_map_user', trimmed);
     localStorage.setItem('pet_map_user_profile', JSON.stringify(updatedProfile));
-
     setIsEditModalOpen(false);
     alert('정보가 성공적으로 수정되었습니다! ✨');
   };
@@ -236,10 +227,7 @@ function AppMain() {
 
       if (!mapRef.current) {
         const centerPosition = new window.kakao.maps.LatLng(37.1995, 126.9271); 
-        const options = {
-          center: centerPosition,
-          level: 4 
-        };
+        const options = { center: centerPosition, level: 4 };
         const map = new window.kakao.maps.Map(mapContainer.current, options);
         mapRef.current = map;
 
@@ -248,7 +236,6 @@ function AppMain() {
         function searchPlacesInCurrentMap() {
           const currentBounds = map.getBounds();
           const currentCenter = map.getCenter();
-
           const keywords = ['애견카페', '동물병원', '애견미용', '애견용품', '반려동물동반'];
           let completedSearches = 0;
           let tempNewPlaces = [];
@@ -256,7 +243,6 @@ function AppMain() {
           keywords.forEach(keyword => {
             ps.keywordSearch(keyword, (data, status) => {
               completedSearches++;
-              
               if (status === window.kakao.maps.services.Status.OK) {
                 data.forEach((place) => {
                   const placePosition = new window.kakao.maps.LatLng(place.y, place.x);
@@ -271,7 +257,6 @@ function AppMain() {
                       tempNewPlaces.push(place);
                     }
                   }
-
                   if (!reviewsStorageRef.current[place.id]) {
                     reviewsStorageRef.current[place.id] = [];
                   }
@@ -291,17 +276,12 @@ function AppMain() {
                     });
                   }
                 });
-
                 if (allFetchedPlacesRef.current.length > 150) {
                   allFetchedPlacesRef.current = allFetchedPlacesRef.current.slice(-150);
                 }
-
                 updateMarkersByFilter(activeFilterRef.current);
               }
-            }, {
-              bounds: currentBounds,
-              location: currentCenter
-            });
+            }, { bounds: currentBounds, location: currentCenter });
           });
         }
 
@@ -336,18 +316,15 @@ function AppMain() {
     markersRef.current = [];
 
     const selectedOption = filterOptions.find(opt => opt.id === filterTarget);
-
     const filtered = allFetchedPlacesRef.current.filter(place => {
       if (filterTarget === 'all') return true;
       if (!place.searchKeywords) return false;
-
       if (filterTarget === 'friendly') {
         const isPurePetFacility = place.category_name.includes('동물') || 
                                   place.category_name.includes('애견') || 
                                   place.category_name.includes('반려');
         return !isPurePetFacility && place.searchKeywords.includes('반려동물동반');
       }
-      
       return place.searchKeywords.includes(selectedOption.keyword);
     });
 
@@ -378,11 +355,7 @@ function AppMain() {
     const map = mapRef.current;
     if (!map) return;
     const markerPosition = new window.kakao.maps.LatLng(place.y, place.x);
-
-    const isPurePetFacility = place.category_name.includes('동물') || 
-                              place.category_name.includes('애견') || 
-                              place.category_name.includes('반려');
-
+    const isPurePetFacility = place.category_name.includes('동물') || place.category_name.includes('애견') || place.category_name.includes('반려');
     const pinColor = isPurePetFacility ? '#e11d48' : '#e2d9db'; 
     const lastCategory = place.category_name.split(' > ').pop();
     const tagText = isPurePetFacility ? lastCategory : `${lastCategory} (동반 🐾)`;
@@ -402,9 +375,7 @@ function AppMain() {
 
     const overlayContent = document.createElement('div');
     overlayContent.className = 'pet-map-container';
-    overlayContent.onclick = function(e) {
-      if (e && e.stopPropagation) e.stopPropagation();
-    };
+    overlayContent.onclick = (e) => e.stopPropagation();
 
     const cardSimple = document.createElement('div');
     cardSimple.className = 'pet-map-card-simple';
@@ -418,9 +389,8 @@ function AppMain() {
     closeBtn.style.height = '24px';
     closeBtn.style.fontSize = '12px';
     closeBtn.innerText = '✕';
-    
-    closeBtn.addEventListener('click', function(e) {
-      if (e && e.stopPropagation) e.stopPropagation();
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       detailOverlay.setMap(null);
       if (currentOverlayRef.current === detailOverlay) {
         currentOverlayRef.current = null;
@@ -462,8 +432,8 @@ function AppMain() {
       clickable: true
     });
 
-    detailBtn.addEventListener('click', function(e) {
-      if (e && e.stopPropagation) e.stopPropagation();
+    detailBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       setSelectedPlace({
         id: place.id,
         place_name: place.place_name,
@@ -488,15 +458,11 @@ function AppMain() {
     overlayContent.appendChild(cardSimple);
     overlayContent.appendChild(arrow);
 
-    markerContent.onclick = function(e) {
-      if (e && e.stopPropagation) e.stopPropagation();
-      
-      if (currentOverlayRef.current) {
-        currentOverlayRef.current.setMap(null); 
-        currentOverlayRef.current = null;
-      }
+    markerContent.onclick = (e) => {
+      e.stopPropagation();
+      if (currentOverlayRef.current) currentOverlayRef.current.setMap(null); 
 
-      const nextPlaceData = {
+      setSelectedPlace({
         id: place.id,
         place_name: place.place_name,
         address_name: place.address_name,
@@ -505,13 +471,7 @@ function AppMain() {
         tagText: tagText,
         isPurePetFacility,
         reviews: reviewsStorageRef.current[place.id] || []
-      };
-
-      const isSidebarOpen = document.querySelector('.pet-sidebar') !== null;
-
-      if (isSidebarOpen) {
-        setSelectedPlace(nextPlaceData);
-      }
+      });
 
       detailOverlay.setMap(map); 
       currentOverlayRef.current = detailOverlay;
@@ -532,7 +492,6 @@ function AppMain() {
   const handleMoveToCurrentLocation = () => {
     const map = mapRef.current;
     if (!map) return;
-
     if (!navigator.geolocation) {
       alert('이 브라우저에서는 위치 정보(GPS)를 지원하지 않습니다.');
       return;
@@ -547,16 +506,11 @@ function AppMain() {
         setUserLocation({ lat, lng: lon });
         map.panTo(locPosition);
 
-        if (gpsMarkerRef.current) {
-          gpsMarkerRef.current.setMap(null);
-        }
+        if (gpsMarkerRef.current) gpsMarkerRef.current.setMap(null);
 
         const gpsContent = document.createElement('div');
         gpsContent.className = 'pet-gps-marker';
-        gpsContent.innerHTML = `
-          <div class="gps-pulse"></div>
-          <div class="gps-dot"></div>
-        `;
+        gpsContent.innerHTML = `<div class="gps-pulse"></div><div class="gps-dot"></div>`;
 
         const gpsOverlay = new window.kakao.maps.CustomOverlay({
           position: locPosition,
@@ -572,11 +526,7 @@ function AppMain() {
         console.error(error);
         alert('위치 정보를 가져올 수 없습니다.');
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
 
@@ -605,13 +555,7 @@ function AppMain() {
       console.error('저장 실패:', e);
     }
 
-    setSelectedPlace(prev => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        reviews: updatedReviews
-      };
-    });
+    setSelectedPlace(prev => prev ? { ...prev, reviews: updatedReviews } : null);
     setReviewInput('');
   };
 
@@ -627,8 +571,6 @@ function AppMain() {
     }
 
     const breedDisplay = userProfile?.dogBreed ? ` (${userProfile.dogBreed} 🐾)` : ' 🐾';
-
-    // 작성 시점의 위치 정보 가져오기 (없으면 기본값 혹은 null)
     const currentLoc = userLocation || { lat: 37.1995, lng: 126.9271 };
 
     if (editingPostId) {
@@ -664,7 +606,7 @@ function AppMain() {
       authorImg: userProfile?.profileImg || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150',
       title: newPostTitle.trim(),
       content: newPostContent.trim(),
-      postType: newPostType, // '동네산책 같이해요' 또는 '산책 대행'
+      postType: newPostType, 
       lat: currentLoc.lat,
       lng: currentLoc.lng,
       timestamp: Date.now(),
@@ -715,9 +657,7 @@ function AppMain() {
       } catch (err) {
         console.error(err);
       }
-      if (editingPostId === postId) {
-        handleCancelEdit();
-      }
+      if (editingPostId === postId) handleCancelEdit();
     }
   };
 
@@ -740,10 +680,7 @@ function AppMain() {
           text: text.trim(),
           timestamp: Date.now()
         };
-        return {
-          ...post,
-          comments: [...post.comments, newComment]
-        };
+        return { ...post, comments: [...post.comments, newComment] };
       }
       return post;
     });
@@ -754,57 +691,40 @@ function AppMain() {
     } catch (e) {
       console.error(e);
     }
-
     setCommentInputs(prev => ({ ...prev, [postId]: '' }));
   };
 
-  // 산책 피드 필터링 로직 (키워드 + 10km 반경 동네 글 필터)
   const filteredWalkPosts = walkPosts.filter(post => {
-    // 1. 유형 키워드 필터
-    if (walkFilterType !== 'all' && post.postType !== walkFilterType) {
-      return false;
-    }
-    // 2. 동네 글(10km 이내) 필터
+    if (walkFilterType !== 'all' && post.postType !== walkFilterType) return false;
     if (walkScopeFilter === 'local') {
-      if (!userLocation) {
-        return false;
-      }
+      if (!userLocation) return false;
       const distance = calculateDistance(userLocation.lat, userLocation.lng, post.lat || userLocation.lat, post.lng || userLocation.lng);
-      if (distance > 10) {
-        return false;
-      }
+      if (distance > 10) return false;
     }
     return true;
   });
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#fff9fa] overflow-hidden relative font-sans antialiased text-stone-800">
+    <div className="flex flex-col h-screen w-screen bg-[#fff9fa] overflow-hidden relative font-sans antialiased text-stone-800 pb-16 md:pb-0">
       
-      <header className="h-16 bg-white/85 backdrop-blur-md border-b border-rose-100/60 flex items-center justify-between px-6 z-40 shrink-0 shadow-xs">
-        
+      {/* 데스크톱/태블릿 헤더 (모바일에서는 숨김 처리 혹은 간소화 가능) */}
+      <header className="hidden md:flex h-16 bg-white/85 backdrop-blur-md border-b border-rose-100/60 items-center justify-between px-6 z-40 shrink-0 shadow-xs">
         <div className="flex items-center bg-rose-50/80 p-1 rounded-2xl border border-rose-100/60">
           <button
             onClick={() => setMainTab('map')}
             className={`px-5 py-2 rounded-xl font-bold text-xs transition-all duration-200 flex items-center gap-2 ${
-              mainTab === 'map' 
-                ? 'bg-rose-600 text-white shadow-md shadow-rose-200 scale-105' 
-                : 'text-stone-500 hover:text-rose-600 hover:bg-rose-100/40'
+              mainTab === 'map' ? 'bg-rose-600 text-white shadow-md shadow-rose-200 scale-105' : 'text-stone-500 hover:text-rose-600 hover:bg-rose-100/40'
             }`}
           >
-            <span className="text-sm">🗺️</span>
-            <span>댕냥맵</span>
+            🗺️ <span>댕냥맵</span>
           </button>
-          
           <button
             onClick={() => setMainTab('walk')}
             className={`px-5 py-2 rounded-xl font-bold text-xs transition-all duration-200 flex items-center gap-2 ${
-              mainTab === 'walk' 
-                ? 'bg-rose-600 text-white shadow-md shadow-rose-200 scale-105' 
-                : 'text-stone-500 hover:text-rose-600 hover:bg-rose-100/40'
+              mainTab === 'walk' ? 'bg-rose-600 text-white shadow-md shadow-rose-200 scale-105' : 'text-stone-500 hover:text-rose-600 hover:bg-rose-100/40'
             }`}
           >
-            <span className="text-sm">🐾</span>
-            <span>동네산책</span>
+            🐾 <span>동네산책</span>
           </button>
         </div>
 
@@ -812,78 +732,58 @@ function AppMain() {
           {currentUser ? (
             <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-rose-100 shadow-xs">
               <div className="flex items-center gap-2">
-                <img 
-                  src={userProfile?.profileImg || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150'} 
-                  alt="프로필" 
-                  className="w-7 h-7 rounded-full object-cover border border-rose-200"
-                />
-                <span className="text-xs font-bold text-rose-950">
-                  <b>{currentUser}</b>님
-                </span>
+                <img src={userProfile?.profileImg} alt="프로필" className="w-7 h-7 rounded-full object-cover border border-rose-200" />
+                <span className="text-xs font-bold text-rose-950"><b>{currentUser}</b>님</span>
               </div>
               <div className="flex items-center gap-2 pl-2 border-l border-stone-200">
-                <button
-                  onClick={openEditModal}
-                  className="text-[11px] font-bold text-rose-600 hover:underline"
-                >
-                  정보수정
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="text-[11px] font-bold text-stone-400 hover:text-rose-600 transition-colors"
-                >
-                  로그아웃
-                </button>
+                <button onClick={openEditModal} className="text-[11px] font-bold text-rose-600 hover:underline">정보수정</button>
+                <button onClick={handleLogout} className="text-[11px] font-bold text-stone-400 hover:text-rose-600">로그아웃</button>
               </div>
             </div>
           ) : (
-            <button
-              onClick={handleKakaoLogin}
-              className="flex items-center justify-center gap-2 bg-[#FEE500] text-[#191919] font-extrabold text-xs py-2.5 px-4 rounded-2xl shadow-md hover:bg-[#fdd835] transition-all cursor-pointer"
-            >
-              <span>💬</span> 카카오로 3초 만에 시작하기
+            <button onClick={handleKakaoLogin} className="flex items-center justify-center gap-2 bg-[#FEE500] text-[#191919] font-extrabold text-xs py-2.5 px-4 rounded-2xl shadow-md">
+              💬 카카오로 시작하기
             </button>
           )}
         </div>
       </header>
 
+      {/* 모바일 최상단 유저 간이 바 */}
+      <div className="md:hidden flex h-12 bg-white/95 border-b border-rose-100 items-center justify-between px-4 z-40 shrink-0">
+        <span className="text-xs font-black text-rose-900 tracking-wider">🐾 댕냥크루</span>
+        {currentUser ? (
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-stone-600 font-bold">{currentUser}님</span>
+            <button onClick={openEditModal} className="text-[10px] text-rose-600 font-bold px-2 py-0.5 bg-rose-50 rounded-md border border-rose-100">수정</button>
+          </div>
+        ) : (
+          <button onClick={handleKakaoLogin} className="text-[10px] font-extrabold bg-[#FEE500] px-2.5 py-1 rounded-lg">💬 로그인</button>
+        )}
+      </div>
+
       <div className="flex-1 flex relative w-full h-full overflow-hidden">
         
-        <div className={`absolute inset-0 flex flex-row w-full h-full transition-opacity duration-200 ${mainTab === 'map' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'}`}>
+        {/* 🗺️ 지도 탭 뷰 */}
+        <div className={`absolute inset-0 flex flex-col md:flex-row w-full h-full transition-opacity duration-200 ${mainTab === 'map' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'}`}>
           
-          <div style={{ position: 'absolute', top: '16px', left: '16px', right: '16px', zIndex: 30, display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
+          {/* 지도 컨트롤 레이어 (상단 배치 & 가로스크롤 최적화) */}
+          <div className="absolute top-3 left-0 right-0 z-30 flex items-center gap-2 px-3 overflow-x-auto no-scrollbar pointer-events-none select-none touch-pan-x">
             <button 
               onClick={handleMoveToCurrentLocation}
-              style={{ 
-                backgroundColor: '#ffffff', 
-                color: '#e11d48', 
-                fontWeight: '700', 
-                padding: '10px 16px', 
-                borderRadius: '16px', 
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', 
-                border: '1px solid #fecdd3', 
-                display: 'flex', 
-                flexDirection: 'row',
-                alignItems: 'center', 
-                gap: '8px', 
-                cursor: 'pointer', 
-                flexShrink: 0, 
-                fontSize: '14px',
-                whiteSpace: 'nowrap'
-              }}
+              className="bg-white text-rose-600 font-bold p-2.5 rounded-xl shadow-lg border border-rose-100 flex items-center justify-center pointer-events-auto shrink-0 touch-manipulation"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: '16px', height: '16px', flexShrink: 0 }}>
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M12 2v3m0 14v3M2 12h3m14 0h3" strokeLinecap="round"/>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
+                <circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3" strokeLinecap="round"/>
               </svg>
-              <span>내 위치</span>
             </button>
 
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'row', overflowX: 'auto', gap: '8px', paddingBottom: '2px', alignItems: 'center' }}>
+            <div className="flex gap-1.5 overflow-x-auto pointer-events-auto pb-1 max-w-full">
               {filterOptions.map(option => (
                 <button
                   key={option.id}
-                  className={`pet-filter-chip ${activeFilter === option.id ? 'active' : ''}`}
+                  className={`pet-filter-chip shrink-0 text-xs px-3 py-1.5 rounded-xl border font-bold transition-all shadow-sm ${
+                    activeFilter === option.id ? 'bg-rose-600 border-rose-600 text-white' : 'bg-white text-stone-600 border-stone-200'
+                  }`}
                   onClick={() => setActiveFilter(option.id)}
                 >
                   {option.label}
@@ -892,373 +792,213 @@ function AppMain() {
             </div>
           </div>
 
+          {/* 플레이스 상세 정보 사이드바 (모바일 대응 반응형) */}
           {selectedPlace && (
-            <div className="pet-sidebar shadow-2xl flex flex-col animate-slide-in">
-              <button className="pet-sidebar-close" onClick={() => setSelectedPlace(null)}>✕</button>
+            <div className="pet-sidebar fixed md:absolute bottom-0 md:top-0 left-0 right-0 md:right-auto md:w-96 max-h-[75vh] md:max-h-full bg-white rounded-t-[2rem] md:rounded-none shadow-2xl flex flex-col z-40 animate-slide-in overflow-hidden">
+              <button className="pet-sidebar-close absolute top-4 right-4 text-stone-400 font-bold z-50 p-2" onClick={() => setSelectedPlace(null)}>✕</button>
               
-              <div className="pt-12 pb-5 px-6 flex flex-col items-center text-center relative w-full">
-                <h2 className="text-2xl font-black text-rose-950 tracking-tight leading-tight mb-2.5 max-w-[85%]">{selectedPlace.place_name}</h2>
+              <div className="pt-8 pb-4 px-6 flex flex-col items-center text-center shrink-0">
+                <h2 className="text-lg md:text-2xl font-black text-rose-950 tracking-tight leading-tight mb-2 max-w-[80%]">{selectedPlace.place_name}</h2>
                 <span className={`pet-map-tag ${selectedPlace.isPurePetFacility ? 'facility' : 'friendly'}`}>
                   {selectedPlace.tagText}
                 </span>
               </div>
 
-              <div className="pet-modern-tab-box">
-                <button 
-                  className={`pet-modern-tab-btn ${activeTab === 'info' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('info')}
-                >
+              <div className="pet-modern-tab-box flex border-b border-stone-100 shrink-0">
+                <button className={`flex-1 text-center py-3 text-xs font-bold ${activeTab === 'info' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-stone-400'}`} onClick={() => setActiveTab('info')}>
                   <span>✨ 플레이스</span>
                 </button>
-                <button 
-                  className={`pet-modern-tab-btn ${activeTab === 'review' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('review')}
-                >
-                  <span>💬 집사토크 ({selectedPlace.reviews ? selectedPlace.reviews.length : 0})</span>
+                <button className={`flex-1 text-center py-3 text-xs font-bold ${activeTab === 'review' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-stone-400'}`} onClick={() => setActiveTab('review')}>
+                  <span>💬 집사토크 ({selectedPlace.reviews?.length || 0})</span>
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-5 py-2">
+              <div className="flex-1 overflow-y-auto px-5 py-3">
                 {activeTab === 'info' ? (
-                  <div className="space-y-4 py-2 animate-fade-in">
-                    <div className="pet-magazine-card">
-                      <div className="card-badge pink">PLACE</div>
-                      <span className="card-label">도로명 주소</span>
-                      <p className="card-value text-stone-800">{selectedPlace.address_name}</p>
+                  <div className="space-y-3 py-1">
+                    <div className="bg-stone-50 p-3.5 rounded-2xl border border-stone-100">
+                      <span className="text-[10px] font-bold text-stone-400 block mb-0.5">도로명 주소</span>
+                      <p className="text-xs text-stone-800 font-medium">{selectedPlace.address_name}</p>
                     </div>
-                    
                     {selectedPlace.phone && (
-                      <div className="pet-magazine-card">
-                        <div className="card-badge gray">CALL</div>
-                        <span className="card-label">연락처</span>
-                        <p className="card-value text-rose-600 font-extrabold tracking-wider">{selectedPlace.phone}</p>
+                      <div className="bg-stone-50 p-3.5 rounded-2xl border border-stone-100">
+                        <span className="text-[10px] font-bold text-stone-400 block mb-0.5">연락처</span>
+                        <p className="text-xs text-rose-600 font-black tracking-wider">{selectedPlace.phone}</p>
                       </div>
                     )}
-                    
-                    <div className="pt-6">
-                      <a href={selectedPlace.place_url} target="_blank" rel="noreferrer" className="pet-magazine-link-btn">
+                    <div className="pt-3">
+                      <a href={selectedPlace.place_url} target="_blank" rel="noreferrer" className="block w-full text-center bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-3 rounded-xl shadow-md transition-colors">
                         카카오맵에서 더 자세히 보기 🗺️
                       </a>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col h-full justify-between pb-4 animate-fade-in">
-                    <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-360px)] pr-1 pet-talk-feed">
+                  <div className="flex flex-col h-full justify-between pb-3">
+                    <div className="space-y-3 overflow-y-auto max-h-[35vh] md:max-h-[50vh] pr-1">
                       {!selectedPlace.reviews || selectedPlace.reviews.length === 0 ? (
-                        <div className="text-center py-16 px-4">
-                          <span className="text-4xl block mb-3 opacity-80">💬</span>
-                          <p className="text-stone-700 text-xs font-bold mb-1">아직 등록된 토크가 없어요.</p>
-                          <p className="text-stone-400 text-[11px]">첫 번째 집사가 되어 소중한 후기를 남겨주세요! ✨</p>
+                        <div className="text-center py-10">
+                          <p className="text-xs text-stone-500 font-bold">아직 등록된 토크가 없어요. 첫 마디를 나누어보세요!</p>
                         </div>
                       ) : (
                         selectedPlace.reviews.map(r => (
-                          <div key={r.id} className="pet-talk-bubble-container">
-                            <div className="bubble-user-row">
-                              <img 
-                                src={r.userImg || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150'} 
-                                alt="프로필" 
-                                className="w-5 h-5 rounded-full object-cover border border-rose-200"
-                              />
-                              <span className="user-name">{r.user}</span>
-                              <span className="user-time">{r.time || '방금 전'}</span>
+                          <div key={r.id} className="bg-rose-50/50 p-3 rounded-2xl border border-rose-100/40">
+                            <div className="flex items-center gap-2 mb-1">
+                              <img src={r.userImg} alt="유저" className="w-5 h-5 rounded-full object-cover" />
+                              <span className="text-[11px] font-bold text-stone-800">{r.user}</span>
+                              <span className="text-[9px] text-stone-400 ml-auto">{r.time}</span>
                             </div>
-                            <div className="pet-talk-bubble">
-                              <p>{r.text}</p>
-                            </div>
+                            <p className="text-xs text-stone-700 pl-7">{r.text}</p>
                           </div>
                         ))
                       )}
                     </div>
-                    
-                    <div className="pt-2 sticky bottom-0 bg-gradient-to-t from-white via-white/95 to-transparent pb-3 pt-6">
-                      <div className="pet-talk-input-wrapper">
-                        <div className="pet-message-row">
-                          <input 
-                            type="text" 
-                            value={reviewInput}
-                            onChange={(e) => setReviewInput(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleReviewSubmit()}
-                            className="pet-message-input"
-                            placeholder={currentUser ? "우리 댕댕이/냥이와 다녀온 솔직 후기 ✨" : "로그인 후 이용 가능합니다 🔒"} 
-                          />
-                          <button 
-                            onClick={handleReviewSubmit}
-                            className="pet-submit-btn"
-                          >
-                            <span>남기기</span>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-3.5 h-3.5">
-                              <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
+                    <div className="pt-2 bg-white sticky bottom-0 flex gap-2">
+                      <input 
+                        type="text" value={reviewInput} onChange={(e) => setReviewInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleReviewSubmit()}
+                        className="flex-1 px-3 py-2 text-xs rounded-xl border border-stone-200 focus:outline-none"
+                        placeholder={currentUser ? "매장 방문 후기를 남겨주세요 ✨" : "로그인 후 이용 가능합니다"} 
+                      />
+                      <button onClick={handleReviewSubmit} className="bg-stone-800 text-white px-3 py-2 text-xs font-bold rounded-xl shrink-0">등록</button>
                     </div>
-
                   </div>
                 )}
               </div>
             </div>
           )}
 
-          <main className="flex-1 relative h-full">
+          <main className="flex-1 w-full h-full relative">
             <div ref={mapContainer} className="w-full h-full" />
           </main>
         </div>
 
-        <div className={`absolute inset-0 bg-[#fff5f6]/60 overflow-y-auto p-4 md:p-10 transition-opacity duration-200 ${mainTab === 'walk' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'}`}>
-          <div className="max-w-2xl mx-auto space-y-6">
+        {/* 🐾 동네산책 피드 탭 뷰 */}
+        <div className={`absolute inset-0 bg-[#fff5f6]/60 overflow-y-auto p-3 md:p-10 transition-opacity duration-200 ${mainTab === 'walk' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'}`}>
+          <div className="max-w-2xl mx-auto space-y-4 md:space-y-6">
             
-            <div className="bg-gradient-to-br from-rose-500 via-rose-600 to-pink-500 text-white p-7 rounded-[2rem] shadow-xl shadow-rose-500/10 flex items-center justify-between relative overflow-hidden">
-              <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
-              <div className="relative z-10 space-y-1.5">
-                <span className="inline-block bg-white/25 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-bold text-rose-100 mb-1">우리 동네 산책 크루 🐾</span>
-                <h2 className="text-2xl font-black tracking-tight">동네 산책 메이트 찾기</h2>
-                <p className="text-xs text-rose-100/90 font-medium">반려견과 함께 가볍게 수다 떨며 산책할 이웃을 만나보세요!</p>
+            <div className="bg-gradient-to-br from-rose-500 via-rose-600 to-pink-500 text-white p-5 md:p-7 rounded-[1.5rem] md:rounded-[2rem] shadow-xl flex items-center justify-between">
+              <div className="space-y-1">
+                <span className="inline-block bg-white/25 px-2.5 py-0.5 rounded-full text-[10px] font-bold text-rose-100 mb-1">우리 동네 산책 크루 🐾</span>
+                <h2 className="text-xl md:text-2xl font-black tracking-tight">동네 산책 메이트 찾기</h2>
+                <p className="text-[11px] text-rose-100/90">이웃과 함께하는 안전하고 신나는 반려견 산책 모임</p>
               </div>
-              <div className="text-5xl relative z-10 bg-white/10 p-3 rounded-2xl backdrop-blur-md">🐕‍🦺</div>
+              <div className="text-4xl hidden sm:block bg-white/10 p-2.5 rounded-2xl">🐕</div>
             </div>
 
-            {/* 글 작성 폼 */}
-            <div className="bg-white/95 backdrop-blur-md p-6 rounded-[2rem] shadow-lg shadow-rose-900/5 border border-rose-100/80">
-              <h3 className="text-sm font-black text-rose-950 mb-3.5 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-lg bg-rose-100 flex items-center justify-center text-xs">✍️</span>
-                <span>{editingPostId ? '산책 메이트 모집글 수정하기' : '새 산책 메이트 모집하기'}</span>
-              </h3>
+            {/* 작성 폼 */}
+            <div className="bg-white p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] shadow-md border border-rose-100/80">
+              <h3 className="text-xs md:text-sm font-black text-rose-950 mb-3 flex items-center gap-2">✍️ {editingPostId ? '글 수정하기' : '새 산책 메이트 모집'}</h3>
               {currentUser ? (
-                <form onSubmit={handleCreateWalkPost} className="space-y-3.5">
-                  {/* 산책 유형 선택 버튼 (라벨 제거) */}
-                  <div className="flex items-center gap-2 pb-1">
+                <form onSubmit={handleCreateWalkPost} className="space-y-3">
+                  <div className="flex items-center gap-2 justify-end">
                     <button
-                      type="button"
-                      onClick={() => setNewPostType('동네산책 같이해요')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                        newPostType === '동네산책 같이해요'
-                          ? 'bg-rose-600 text-white shadow-sm'
-                          : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                      }`}
+                      type="button" onClick={() => setNewPostType('동네산책 같이해요')}
+                      className={`px-3 py-1.5 rounded-xl text-[11px] font-bold ${newPostType === '동네산책 같이해요' ? 'bg-rose-600 text-white' : 'bg-stone-100 text-stone-600'}`}
                     >
                       🐾 동네산책 같이해요
                     </button>
                     <button
-                      type="button"
-                      onClick={() => setNewPostType('산책 대행')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                        newPostType === '산책 대행'
-                          ? 'bg-rose-600 text-white shadow-sm'
-                          : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                      }`}
+                      type="button" onClick={() => setNewPostType('산책 대행')}
+                      className={`px-3 py-1.5 rounded-xl text-[11px] font-bold ${newPostType === '산책 대행' ? 'bg-sky-600 text-white' : 'bg-stone-100 text-stone-600'}`}
                     >
                       🚶‍♂️ 산책 대행
                     </button>
                   </div>
 
                   <input
-                    type="text"
-                    value={newPostTitle}
-                    onChange={(e) => setNewPostTitle(e.target.value)}
-                    placeholder="제목 (예: 오늘 저녁 8시 화성시청 앞 산책 가실 분!)"
-                    className="w-full px-4.5 py-3 text-xs rounded-2xl border border-stone-200/80 focus:outline-none focus:border-rose-500 bg-stone-50/50 font-medium transition-colors"
+                    type="text" value={newPostTitle} onChange={(e) => setNewPostTitle(e.target.value)}
+                    placeholder="제목을 입력하세요"
+                    className="w-full px-4 py-2.5 text-xs rounded-xl border border-stone-200 focus:outline-none"
                   />
                   <textarea
-                    value={newPostContent}
-                    onChange={(e) => setNewPostContent(e.target.value)}
-                    placeholder="만나는 장소, 시간, 반려견의 성향 등을 자유롭게 적어주세요 ✨"
-                    rows="3"
-                    className="w-full px-4.5 py-3 text-xs rounded-2xl border border-stone-200/80 focus:outline-none focus:border-rose-500 bg-stone-50/50 resize-none font-medium transition-colors"
+                    value={newPostContent} onChange={(e) => setNewPostContent(e.target.value)}
+                    placeholder="시간, 장소, 반려견의 성향을 알려주세요 ✨" rows="2"
+                    className="w-full px-4 py-2.5 text-xs rounded-xl border border-stone-200 focus:outline-none resize-none"
                   ></textarea>
-                  <div className="flex justify-end gap-2 pt-1">
-                    {editingPostId && (
-                      <button
-                        type="button"
-                        onClick={handleCancelEdit}
-                        className="px-5 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-600 font-bold text-xs rounded-xl transition-all"
-                      >
-                        취소
-                      </button>
-                    )}
-                    <button
-                      type="submit"
-                      className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-lg shadow-rose-600/20 transition-all hover:scale-105"
-                    >
-                      {editingPostId ? '수정 완료 ✨' : '모집글 등록 ✨'}
-                    </button>
+                  <div className="flex justify-end gap-2">
+                    {editingPostId && <button type="button" onClick={handleCancelEdit} className="px-4 py-2 bg-stone-100 text-xs font-bold rounded-xl">취소</button>}
+                    <button type="submit" className="px-5 py-2 bg-rose-600 text-white text-xs font-black rounded-xl shadow-md">{editingPostId ? '수정 완료' : '등록하기'}</button>
                   </div>
                 </form>
               ) : (
-                <div className="py-8 text-center bg-stone-50/80 rounded-2xl border border-dashed border-stone-200">
-                  <p className="text-xs text-stone-600 font-bold mb-1">🔒 카카오 로그인 후 글을 작성할 수 있습니다.</p>
-                  <p className="text-[11px] text-stone-400">상단 우측의 카카오 버튼을 눌러 간편하게 로그인해 보세요!</p>
+                <div className="py-6 text-center bg-stone-50 rounded-xl border border-dashed border-stone-200 text-xs text-stone-500">
+                  🔒 로그인이 필요한 서비스입니다.
                 </div>
               )}
             </div>
 
-            {/* 필터 바 (유형, 범위 라벨 제거) */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-rose-100 shadow-sm">
-              <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-                <button
-                  onClick={() => setWalkFilterType('all')}
-                  className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all shrink-0 ${
-                    walkFilterType === 'all' ? 'bg-rose-900 text-white' : 'bg-stone-100 text-stone-600'
-                  }`}
-                >
-                  전체 유형
-                </button>
-                <button
-                  onClick={() => setWalkFilterType('동네산책 같이해요')}
-                  className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all shrink-0 ${
-                    walkFilterType === '동네산책 같이해요' ? 'bg-rose-600 text-white' : 'bg-stone-100 text-stone-600'
-                  }`}
-                >
-                  🐾 같이해요
-                </button>
-                <button
-                  onClick={() => setWalkFilterType('산책 대행')}
-                  className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all shrink-0 ${
-                    walkFilterType === '산책 대행' ? 'bg-rose-600 text-white' : 'bg-stone-100 text-stone-600'
-                  }`}
-                >
-                  🚶‍♂️ 산책 대행
-                </button>
+            {/* 필터 세션 */}
+            <div className="flex flex-col gap-2 bg-white p-3 rounded-xl border border-rose-100 shadow-xs">
+              <div className="flex gap-1 overflow-x-auto pb-1 no-scrollbar">
+                {['all', '동네산책 같이해요', '산책 대행'].map(t => (
+                  <button
+                    key={t} onClick={() => setWalkFilterType(t)}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold shrink-0 ${walkFilterType === t ? 'bg-stone-800 text-white' : 'bg-stone-100 text-stone-600'}`}
+                  >
+                    {t === 'all' ? '전체유형' : t === '산책 대행' ? '🚶‍♂️ 대행' : '🐾 같이해요'}
+                  </button>
+                ))}
               </div>
-
-              <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-stone-100">
-                <button
-                  onClick={() => setWalkScopeFilter('all')}
-                  className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all ${
-                    walkScopeFilter === 'all' ? 'bg-rose-600 text-white' : 'bg-stone-100 text-stone-600'
-                  }`}
-                >
-                  🌍 전체글 보기
-                </button>
-                <button
-                  onClick={() => setWalkScopeFilter('local')}
-                  className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all ${
-                    walkScopeFilter === 'local' ? 'bg-rose-600 text-white' : 'bg-stone-100 text-stone-600'
-                  }`}
-                >
-                  🏠 동네 글만 보기 (10km 내)
-                </button>
+              <div className="flex gap-1 border-t border-stone-100 pt-2">
+                <button onClick={() => setWalkScopeFilter('all')} className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg ${walkScopeFilter === 'all' ? 'bg-rose-600 text-white' : 'bg-stone-50 text-stone-600'}`}>🌍 전체글</button>
+                <button onClick={() => setWalkScopeFilter('local')} className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg ${walkScopeFilter === 'local' ? 'bg-rose-600 text-white' : 'bg-stone-50 text-stone-600'}`}>🏠 내 동네 (10km)</button>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between px-1">
-                <h3 className="text-sm font-black text-stone-700">📋 실시간 산책 피드</h3>
-                <span className="text-[11px] font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-100">총 {filteredWalkPosts.length}개의 모임</span>
-              </div>
-
-              {filteredWalkPosts.length === 0 ? (
-                <div className="text-center py-16 bg-white rounded-[2rem] border border-rose-100 shadow-sm">
-                  <span className="text-3xl block mb-2">🐾</span>
-                  <p className="text-xs text-stone-500 font-bold">조건에 맞는 산책 글이 없습니다.</p>
-                </div>
-              ) : (
-                filteredWalkPosts.map(post => (
-                  <div key={post.id} className="bg-white p-6 rounded-[2rem] shadow-sm hover:shadow-md transition-shadow border border-rose-100/80 space-y-4">
-                    <div className="flex items-center justify-between border-b border-stone-100 pb-3.5">
-                      <div className="flex items-center gap-3">
-                        <img 
-                          src={post.authorImg || userProfile?.profileImg || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150'} 
-                          alt="작성자 프로필" 
-                          className="w-10 h-10 rounded-full object-cover border border-rose-200 shadow-sm shrink-0"
-                        />
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-black text-stone-900">{post.author}</span>
-                            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100">
-                              {post.authorGender || '여성'}
-                            </span>
-                          </div>
-                          {/* 작성 시간 옆에 자기 위치(동네) 표시 */}
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="text-[10px] text-stone-400">{formatRelativeTime(post.timestamp)}</span>
-                            <span className="text-[10px] text-stone-300">•</span>
-                            <span className="text-[10px] font-bold text-rose-500 bg-rose-50 px-1.5 py-0.2 rounded">
-                              📍 내 동네 기준
-                            </span>
-                          </div>
+            {/* 실시간 피드 목록 */}
+            <div className="space-y-3">
+              {filteredWalkPosts.map(post => (
+                <div key={post.id} className="bg-white p-4 md:p-6 rounded-[1.5rem] shadow-sm border border-rose-100/80 space-y-3">
+                  <div className="flex items-center justify-between border-b border-stone-50 pb-2">
+                    <div className="flex items-center gap-2">
+                      <img src={post.authorImg} alt="유저" className="w-8 h-8 rounded-full object-cover" />
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-black text-stone-900">{post.author}</span>
+                          <span className="text-[9px] font-extrabold px-1 bg-rose-50 text-rose-600 rounded">{post.authorGender}</span>
                         </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        {/* 글에 산책 유형 표현 */}
-                        <span className="text-[10px] font-black bg-rose-600 text-white px-3 py-1 rounded-full shadow-2xs">
-                          {post.postType || '동네산책 같이해요'} 🐾
-                        </span>
-                        {currentUser && currentUser === post.rawAuthor && (
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => handleEditWalkPost(post)}
-                              className="px-2.5 py-1 bg-stone-100 hover:bg-rose-100 text-stone-600 hover:text-rose-600 rounded-lg font-bold text-[10px] transition-colors"
-                              title="모집글 수정"
-                            >
-                              수정
-                            </button>
-                            <button
-                              onClick={() => handleDeleteWalkPost(post.id, post.rawAuthor)}
-                              className="w-6 h-6 bg-stone-100 hover:bg-rose-100 text-stone-400 hover:text-rose-600 rounded-full flex items-center justify-center font-bold text-xs transition-colors"
-                              title="모집글 삭제"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        )}
+                        <span className="text-[9px] text-stone-400 block">{formatRelativeTime(post.timestamp)}</span>
                       </div>
                     </div>
-
-                    <div className="space-y-1.5">
-                      <h4 className="text-sm font-black text-stone-900 tracking-tight">{post.title}</h4>
-                      <p className="text-xs text-stone-600 leading-relaxed whitespace-pre-wrap">{post.content}</p>
-                    </div>
-
-                    <div className="bg-[#fff9fa] p-4 rounded-2xl space-y-3 border border-rose-100/60">
-                      <span className="text-[11px] font-black text-rose-950 block">💬 함께하기 댓글 ({post.comments.length})</span>
-                      
-                      <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                        {post.comments.map(c => (
-                          <div key={c.id} className="bg-white p-3 rounded-xl border border-stone-200/60 text-xs shadow-2xs">
-                            <div className="flex items-center justify-between mb-1">
-                              <div className="flex items-center gap-2">
-                                <img 
-                                  src={c.authorImg || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150'} 
-                                  alt="댓글 작성자" 
-                                  className="w-5 h-5 rounded-full object-cover border border-rose-200 shrink-0"
-                                />
-                                <div className="flex items-center gap-1.5">
-                                  <span className="font-black text-rose-950">{c.author}</span>
-                                  <span className="text-[9px] font-extrabold px-1 py-0.2 rounded bg-rose-50 text-rose-600 border border-rose-100">
-                                    {c.authorGender || '여성'}
-                                  </span>
-                                </div>
-                              </div>
-                              <span className="text-[10px] text-stone-400">{formatRelativeTime(c.timestamp)}</span>
-                            </div>
-                            <p className="text-stone-700 leading-normal pl-7">{c.text}</p>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="flex gap-2 pt-1">
-                        <input
-                          type="text"
-                          value={commentInputs[post.id] || ''}
-                          onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
-                          onKeyDown={(e) => e.key === 'Enter' && handleCommentSubmit(post.id)}
-                          placeholder={currentUser ? "댓글을 남겨 산책에 참여해보세요..." : "카카오 로그인 후 댓글 작성 가능 🔒"}
-                          className="flex-1 px-3.5 py-2 text-xs rounded-xl border border-stone-200/80 bg-white focus:outline-none focus:border-rose-500 font-medium"
-                        />
-                        <button
-                          onClick={() => handleCommentSubmit(post.id)}
-                          className="px-4 py-2 bg-stone-800 hover:bg-stone-900 text-white font-bold text-xs rounded-xl transition-colors shrink-0 shadow-sm"
-                        >
-                          등록
-                        </button>
-                      </div>
-                    </div>
-
+                    <span className={`text-[9px] font-bold text-white px-2 py-0.5 rounded-full ${post.postType === '산책 대행' ? 'bg-sky-600' : 'bg-rose-600'}`}>{post.postType}</span>
                   </div>
-                ))
-              )}
+
+                  <div className="space-y-1">
+                    <h4 className="text-xs md:text-sm font-black text-stone-900">{post.title}</h4>
+                    <p className="text-[11px] md:text-xs text-stone-600 whitespace-pre-wrap">{post.content}</p>
+                  </div>
+
+                  {/* 댓글 섹션 */}
+                  <div className="bg-stone-50/70 p-3 rounded-xl space-y-2">
+                    <span className="text-[10px] font-black text-stone-500 block">댓글 ({post.comments.length})</span>
+                    <div className="space-y-1.5 max-h-32 overflow-y-auto">
+                      {post.comments.map(c => (
+                        <div key={c.id} className="bg-white p-2 rounded-lg border border-stone-100 text-[11px]">
+                          <span className="font-bold text-stone-800">{c.author}: </span>
+                          <span className="text-stone-600">{c.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex gap-1.5">
+                      <input
+                        type="text" value={commentInputs[post.id] || ''}
+                        onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
+                        onKeyDown={(e) => e.key === 'Enter' && handleCommentSubmit(post.id)}
+                        placeholder="댓글 남기기..."
+                        className="flex-1 px-3 py-1.5 text-[11px] rounded-lg border border-stone-200 focus:outline-none bg-white"
+                      />
+                      <button onClick={() => handleCommentSubmit(post.id)} className="px-3 bg-stone-800 text-white text-[11px] font-bold rounded-lg">등록</button>
+                    </div>
+                  </div>
+                  
+                  {currentUser && currentUser === post.rawAuthor && (
+                    <div className="flex justify-end gap-1.5 pt-1 text-[10px]">
+                      <button onClick={() => handleEditWalkPost(post)} className="text-stone-500 hover:underline">수정</button>
+                      <button onClick={() => handleDeleteWalkPost(post.id, post.rawAuthor)} className="text-rose-500 hover:underline">삭제</button>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
 
           </div>
@@ -1266,95 +1006,56 @@ function AppMain() {
 
       </div>
 
+      {/* 📱 모바일 전용 하단 고정 탭 바 */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-t border-rose-100 flex items-center justify-around z-40 px-2 shadow-lg">
+        <button 
+          onClick={() => setMainTab('map')}
+          className={`flex flex-col items-center justify-center flex-1 py-1 gap-0.5 ${mainTab === 'map' ? 'text-rose-600 font-black scale-105' : 'text-stone-400 font-bold'}`}
+        >
+          <span className="text-lg">🗺️</span>
+          <span className="text-[10px]">댕냥맵</span>
+        </button>
+        <button 
+          onClick={() => setMainTab('walk')}
+          className={`flex flex-col items-center justify-center flex-1 py-1 gap-0.5 ${mainTab === 'walk' ? 'text-rose-600 font-black scale-105' : 'text-stone-400 font-bold'}`}
+        >
+          <span className="text-lg">🐾</span>
+          <span className="text-[10px]">동네산책</span>
+        </button>
+      </nav>
+
+      {/* 회원정보 수정 모달 */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-[2rem] p-7 max-w-sm w-full shadow-2xl border border-rose-100 flex flex-col gap-4 animate-fade-in">
-            <div className="flex items-center justify-between pb-1 border-b border-stone-100">
-              <h3 className="text-lg font-black text-rose-950">✨ 내 정보 수정하기</h3>
-              <button 
-                onClick={() => setIsEditModalOpen(false)}
-                className="text-stone-400 hover:text-stone-700 font-bold text-sm"
-              >
-                ✕
-              </button>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-5 max-w-xs w-full shadow-2xl space-y-3 border border-rose-100 animate-fade-in">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-2">
+              <h3 className="text-sm font-black text-rose-950">내 정보 수정</h3>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-stone-400 text-xs">✕</button>
             </div>
-
-            {editError && (
-              <div className="bg-rose-50 border border-rose-200 text-rose-600 text-[11px] p-2.5 rounded-xl text-center font-bold">
-                {editError}
+            {editError && <div className="text-[10px] text-rose-600 bg-rose-50 p-2 rounded-lg text-center font-bold">{editError}</div>}
+            <form onSubmit={handleEditSubmit} className="space-y-3">
+              <div className="flex flex-col items-center gap-1.5">
+                <img src={editProfileImg} alt="미리보기" className="w-12 h-12 rounded-full object-cover border-2 border-rose-500 shadow-sm" />
+                <input id="mo-upload" type="file" accept="image/*" onChange={handleEditImageChange} className="hidden" />
+                <label htmlFor="mo-upload" className="text-[10px] text-rose-600 font-bold cursor-pointer">사진 변경</label>
               </div>
-            )}
-
-            <form onSubmit={handleEditSubmit} className="space-y-3.5">
-              <div className="flex flex-col items-center gap-2 pb-1">
-                <div className="relative group cursor-pointer">
-                  <img 
-                    src={editProfileImg} 
-                    alt="프로필 미리보기" 
-                    className="w-16 h-16 rounded-full object-cover border-2 border-rose-500 shadow-md"
-                  />
-                  <label htmlFor="edit-profile-upload" className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center text-white text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                    변경
-                  </label>
-                </div>
-                <input 
-                  id="edit-profile-upload" 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={handleEditImageChange} 
-                  className="hidden" 
-                />
-                <label htmlFor="edit-profile-upload" className="text-[11px] text-rose-600 font-bold hover:underline cursor-pointer">
-                  프로필 사진 변경하기 📷
-                </label>
+              <div className="space-y-0.5">
+                <label className="text-[10px] font-bold text-stone-500">닉네임</label>
+                <input type="text" value={editNickname} onChange={(e) => setEditNickname(e.target.value)} className="w-full px-3 py-2 text-xs rounded-lg border border-stone-200" />
               </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-extrabold text-stone-700">닉네임</label>
-                <input
-                  type="text"
-                  value={editNickname}
-                  onChange={(e) => { setEditNickname(e.target.value); setEditError(''); }}
-                  className="w-full px-4 py-2.5 text-xs rounded-xl border border-stone-200 focus:outline-none focus:border-rose-500 bg-stone-50 font-bold"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-extrabold text-stone-700">성별</label>
-                <select
-                  value={editGender}
-                  onChange={(e) => setEditGender(e.target.value)}
-                  className="w-full px-4 py-2.5 text-xs rounded-xl border border-stone-200 focus:outline-none focus:border-rose-500 bg-stone-50 font-bold text-stone-700"
-                >
-                  <option value="여성">여성</option>
-                  <option value="남성">남성</option>
+              <div className="space-y-0.5">
+                <label className="text-[10px] font-bold text-stone-500">성별</label>
+                <select value={editGender} onChange={(e) => setEditGender(e.target.value)} className="w-full px-3 py-2 text-xs rounded-lg border border-stone-200 text-stone-700 font-medium">
+                  <option value="여성">여성</option><option value="남성">남성</option>
                 </select>
               </div>
-
-              <div className="space-y-1">
-                <label className="text-[11px] font-extrabold text-stone-700">키우는 강아지 종 (품종)</label>
-                <input
-                  type="text"
-                  value={editDogBreed}
-                  onChange={(e) => { setEditDogBreed(e.target.value); setEditError(''); }}
-                  className="w-full px-4 py-2.5 text-xs rounded-xl border border-stone-200 focus:outline-none focus:border-rose-500 bg-stone-50 font-bold"
-                />
+              <div className="space-y-0.5">
+                <label className="text-[10px] font-bold text-stone-500">강아지 종</label>
+                <input type="text" value={editDogBreed} onChange={(e) => setEditDogBreed(e.target.value)} className="w-full px-3 py-2 text-xs rounded-lg border border-stone-200" />
               </div>
-
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="flex-1 py-3 bg-stone-100 hover:bg-stone-200 text-stone-600 font-bold text-xs rounded-xl transition-all"
-                >
-                  취소
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-lg shadow-rose-600/20 transition-all"
-                >
-                  저장하기 🐾
-                </button>
+              <div className="flex gap-2 pt-1">
+                <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 py-2 bg-stone-100 text-stone-600 text-xs font-bold rounded-lg">취소</button>
+                <button type="submit" className="flex-1 py-2 bg-rose-600 text-white text-xs font-black rounded-lg">저장</button>
               </div>
             </form>
           </div>
