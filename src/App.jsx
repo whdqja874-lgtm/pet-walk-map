@@ -34,7 +34,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 };
 
 function AppMain() {
-  const [mainTab, setMainTab] = useState('walk'); 
+  const [mainTab, setMainTab] = useState('map'); 
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       return localStorage.getItem('pet_map_user') || '테스트유저'; 
@@ -432,6 +432,7 @@ function AppMain() {
       clickable: true
     });
 
+    // 1단계 수정: 상세보기 클릭 시에만 사이드바 오픈
     detailBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       setSelectedPlace({
@@ -445,6 +446,7 @@ function AppMain() {
         reviews: reviewsStorageRef.current[place.id] || []
       });
       setActiveTab('info');
+      detailOverlay.setMap(null); // 사이드바가 켜질 때 말풍선은 닫음
     });
 
     const arrow = document.createElement('div');
@@ -458,20 +460,10 @@ function AppMain() {
     overlayContent.appendChild(cardSimple);
     overlayContent.appendChild(arrow);
 
+    // 1단계 수정: 발자국 누르면 말풍선(Overlay)만 노출
     markerContent.onclick = (e) => {
       e.stopPropagation();
       if (currentOverlayRef.current) currentOverlayRef.current.setMap(null); 
-
-      setSelectedPlace({
-        id: place.id,
-        place_name: place.place_name,
-        address_name: place.address_name,
-        phone: place.phone || '',
-        place_url: place.place_url,
-        tagText: tagText,
-        isPurePetFacility,
-        reviews: reviewsStorageRef.current[place.id] || []
-      });
 
       detailOverlay.setMap(map); 
       currentOverlayRef.current = detailOverlay;
@@ -705,9 +697,9 @@ function AppMain() {
   });
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#fff9fa] overflow-hidden relative font-sans antialiased text-stone-800 pb-16 md:pb-0">
+    <div className="flex flex-col h-screen w-screen bg-[#fff9fa] overflow-hidden relative font-sans antialiased text-stone-800 pb-20 md:pb-0">
       
-      {/* 데스크톱/태블릿 헤더 (모바일에서는 숨김 처리 혹은 간소화 가능) */}
+      {/* 데스크톱/태블릿 헤더 */}
       <header className="hidden md:flex h-16 bg-white/85 backdrop-blur-md border-b border-rose-100/60 items-center justify-between px-6 z-40 shrink-0 shadow-xs">
         <div className="flex items-center bg-rose-50/80 p-1 rounded-2xl border border-rose-100/60">
           <button
@@ -766,7 +758,7 @@ function AppMain() {
         {/* 🗺️ 지도 탭 뷰 */}
         <div className={`absolute inset-0 flex flex-col md:flex-row w-full h-full transition-opacity duration-200 ${mainTab === 'map' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'}`}>
           
-          {/* 지도 컨트롤 레이어 (상단 배치 & 가로스크롤 최적화) */}
+          {/* 지도 컨트롤 레이어 */}
           <div className="absolute top-3 left-0 right-0 z-30 flex items-center gap-2 px-3 overflow-x-auto no-scrollbar pointer-events-none select-none touch-pan-x">
             <button 
               onClick={handleMoveToCurrentLocation}
@@ -777,7 +769,7 @@ function AppMain() {
               </svg>
             </button>
 
-            <div className="flex gap-1.5 overflow-x-auto pointer-events-auto pb-1 max-w-full">
+            <div className="flex gap-1.5 overflow-x-auto pointer-events-auto pb-1 max-w-full no-scrollbar">
               {filterOptions.map(option => (
                 <button
                   key={option.id}
@@ -792,28 +784,29 @@ function AppMain() {
             </div>
           </div>
 
-          {/* 플레이스 상세 정보 사이드바 (모바일 대응 반응형) */}
+          {/* 플레이스 상세 정보 사이드바 (모바일 짤림 방지 및 스크롤바 삭제 보완) */}
           {selectedPlace && (
-            <div className="pet-sidebar fixed md:absolute bottom-0 md:top-0 left-0 right-0 md:right-auto md:w-96 max-h-[75vh] md:max-h-full bg-white rounded-t-[2rem] md:rounded-none shadow-2xl flex flex-col z-40 animate-slide-in overflow-hidden">
+            <div className="pet-sidebar fixed md:absolute bottom-0 md:top-0 left-0 right-0 md:right-auto md:w-96 max-h-[60vh] md:max-h-full bg-white rounded-t-[2rem] md:rounded-none shadow-2xl flex flex-col z-40 animate-slide-in overflow-hidden">
               <button className="pet-sidebar-close absolute top-4 right-4 text-stone-400 font-bold z-50 p-2" onClick={() => setSelectedPlace(null)}>✕</button>
               
-              <div className="pt-8 pb-4 px-6 flex flex-col items-center text-center shrink-0">
-                <h2 className="text-lg md:text-2xl font-black text-rose-950 tracking-tight leading-tight mb-2 max-w-[80%]">{selectedPlace.place_name}</h2>
+              <div className="pt-7 pb-3 px-6 flex flex-col items-center text-center shrink-0">
+                <h2 className="text-base md:text-2xl font-black text-rose-950 tracking-tight leading-tight mb-1.5 max-w-[85%]">{selectedPlace.place_name}</h2>
                 <span className={`pet-map-tag ${selectedPlace.isPurePetFacility ? 'facility' : 'friendly'}`}>
                   {selectedPlace.tagText}
                 </span>
               </div>
 
               <div className="pet-modern-tab-box flex border-b border-stone-100 shrink-0">
-                <button className={`flex-1 text-center py-3 text-xs font-bold ${activeTab === 'info' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-stone-400'}`} onClick={() => setActiveTab('info')}>
+                <button className={`flex-1 text-center py-2.5 text-xs font-bold ${activeTab === 'info' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-stone-400'}`} onClick={() => setActiveTab('info')}>
                   <span>✨ 플레이스</span>
                 </button>
-                <button className={`flex-1 text-center py-3 text-xs font-bold ${activeTab === 'review' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-stone-400'}`} onClick={() => setActiveTab('review')}>
+                <button className={`flex-1 text-center py-2.5 text-xs font-bold ${activeTab === 'review' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-stone-400'}`} onClick={() => setActiveTab('review')}>
                   <span>💬 집사토크 ({selectedPlace.reviews?.length || 0})</span>
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-5 py-3">
+              {/* 2번 & 3번 요구사항 수정: 내부 컨테이너 스크롤 지원 및 스크롤바 히든 */}
+              <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-4">
                 {activeTab === 'info' ? (
                   <div className="space-y-3 py-1">
                     <div className="bg-stone-50 p-3.5 rounded-2xl border border-stone-100">
@@ -826,22 +819,23 @@ function AppMain() {
                         <p className="text-xs text-rose-600 font-black tracking-wider">{selectedPlace.phone}</p>
                       </div>
                     )}
-                    <div className="pt-3">
+                    <div className="pt-2">
                       <a href={selectedPlace.place_url} target="_blank" rel="noreferrer" className="block w-full text-center bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-3 rounded-xl shadow-md transition-colors">
                         카카오맵에서 더 자세히 보기 🗺️
                       </a>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col h-full justify-between pb-3">
-                    <div className="space-y-3 overflow-y-auto max-h-[35vh] md:max-h-[50vh] pr-1">
+                  // 3번 수정: 집사토크 댓글 리스트 스크롤 영역과 하단 댓글창 배치 분리 고정
+                  <div className="flex flex-col h-full min-h-[25vh]">
+                    <div className="flex-1 overflow-y-auto no-scrollbar space-y-2.5 pr-1 pb-2">
                       {!selectedPlace.reviews || selectedPlace.reviews.length === 0 ? (
-                        <div className="text-center py-10">
+                        <div className="text-center py-8">
                           <p className="text-xs text-stone-500 font-bold">아직 등록된 토크가 없어요. 첫 마디를 나누어보세요!</p>
                         </div>
                       ) : (
                         selectedPlace.reviews.map(r => (
-                          <div key={r.id} className="bg-rose-50/50 p-3 rounded-2xl border border-rose-100/40">
+                          <div key={r.id} className="bg-rose-50/50 p-2.5 rounded-2xl border border-rose-100/40">
                             <div className="flex items-center gap-2 mb-1">
                               <img src={r.userImg} alt="유저" className="w-5 h-5 rounded-full object-cover" />
                               <span className="text-[11px] font-bold text-stone-800">{r.user}</span>
@@ -852,7 +846,7 @@ function AppMain() {
                         ))
                       )}
                     </div>
-                    <div className="pt-2 bg-white sticky bottom-0 flex gap-2">
+                    <div className="pt-2 bg-white border-t border-stone-100 shrink-0 flex gap-2">
                       <input 
                         type="text" value={reviewInput} onChange={(e) => setReviewInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleReviewSubmit()}
@@ -1006,21 +1000,29 @@ function AppMain() {
 
       </div>
 
-      {/* 📱 모바일 전용 하단 고정 탭 바 */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-t border-rose-100 flex items-center justify-around z-40 px-2 shadow-lg">
+      {/* 4번 수정: 트렌디하고 세련된 라운드 하단 플로팅 탭바 */}
+      <nav className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-sm h-14 bg-white/90 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-around z-50 px-3 shadow-[0_12px_32px_rgba(225,29,72,0.18)]">
         <button 
           onClick={() => setMainTab('map')}
-          className={`flex flex-col items-center justify-center flex-1 py-1 gap-0.5 ${mainTab === 'map' ? 'text-rose-600 font-black scale-105' : 'text-stone-400 font-bold'}`}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full text-xs font-black transition-all ${
+            mainTab === 'map' 
+              ? 'bg-rose-600 text-white shadow-md shadow-rose-200' 
+              : 'text-stone-400 hover:text-rose-600'
+          }`}
         >
-          <span className="text-lg">🗺️</span>
-          <span className="text-[10px]">댕냥맵</span>
+          <span className="text-base">🗺️</span>
+          <span>댕냥맵</span>
         </button>
         <button 
           onClick={() => setMainTab('walk')}
-          className={`flex flex-col items-center justify-center flex-1 py-1 gap-0.5 ${mainTab === 'walk' ? 'text-rose-600 font-black scale-105' : 'text-stone-400 font-bold'}`}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full text-xs font-black transition-all ${
+            mainTab === 'walk' 
+              ? 'bg-rose-600 text-white shadow-md shadow-rose-200' 
+              : 'text-stone-400 hover:text-rose-600'
+          }`}
         >
-          <span className="text-lg">🐾</span>
-          <span className="text-[10px]">동네산책</span>
+          <span className="text-base">🐾</span>
+          <span>동네산책</span>
         </button>
       </nav>
 

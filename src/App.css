@@ -19,10 +19,18 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
+/* 🔍 스크롤 바 없애는 유틸리티 (2번, 3번 해결책) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
 /* ==========================================
     🐾 펫 프렌들리 지도 앱: 러블리 파우더 핑크 스킨
    ========================================== */
-
 .pet-paw-marker {
   width: 48px;
   height: 48px;
@@ -41,12 +49,16 @@
   height: 100%;
 }
 
+.paw-pin-bg {
+  transition: fill 0.2s ease;
+}
+
 .paw-pad, .paw-toe {
   fill: #ffffff;
 }
 
 /* ==========================================
-    🎛️ 좌측 상단 트렌디 필터 내비게이터 스타일
+    🎛️ 좌측 상단 필터 navigator
    ========================================== */
 .pet-filter-container {
   position: absolute;
@@ -98,7 +110,6 @@
   box-shadow: 0 8px 16px rgba(225, 29, 72, 0.2);
 }
 
-/* 사이드바가 켜졌을 때 필터 위치 유연한 정렬 보정 */
 .pet-sidebar ~ .pet-filter-container {
   left: 428px;
 }
@@ -215,7 +226,7 @@
 }
 
 /* ==========================================
-    🚪 세련된 아기자기 사이드바 테마 (가림 보정 완료)
+    🚪 아기자기 사이드바 테마
    ========================================== */
 .pet-sidebar {
   position: fixed;
@@ -287,212 +298,7 @@
   transform: scale(1.02);
 }
 
-.pet-magazine-card {
-  background: #ffffff;
-  border: 1px solid rgba(251, 207, 232, 0.6);
-  border-radius: 20px;
-  padding: 20px 22px;
-  position: relative;
-  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.02);
-  transition: transform 0.2s ease;
-}
-
-.pet-magazine-card:hover {
-  transform: translateY(-2px);
-}
-
-.card-badge {
-  position: absolute;
-  right: 20px;
-  top: 18px;
-  font-size: 9px;
-  font-weight: 900;
-  padding: 3px 8px;
-  border-radius: 6px;
-  letter-spacing: 0.05em;
-}
-
-.card-badge.pink { background: #ffe4e6; color: #e11d48; }
-.card-badge.gray { background: #f3eef0; color: #8c737c; }
-
-.card-label {
-  display: block;
-  font-size: 11px;
-  font-weight: 800;
-  color: #fda4af;
-  margin-bottom: 6px;
-  letter-spacing: -0.01em;
-}
-
-.card-value {
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.pet-magazine-link-btn {
-  display: block;
-  text-align: center;
-  background: #4c0519; 
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 800;
-  padding: 15px;
-  border-radius: 20px;
-  box-shadow: 0 10px 20px rgba(76, 5, 25, 0.15);
-  transition: all 0.2s ease;
-}
-
-.pet-magazine-link-btn:hover {
-  background: #700724;
-  box-shadow: 0 12px 24px rgba(76, 5, 25, 0.25);
-}
-
-.pet-talk-feed {
-  padding-bottom: 10px;
-}
-
-.pet-talk-bubble-container {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 16px;
-}
-
-.bubble-user-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 5px;
-  padding-left: 4px;
-}
-
-.user-avatar {
-  font-size: 12px;
-}
-
-.user-name {
-  font-size: 11px;
-  font-weight: 800;
-  color: #881337;
-}
-
-.user-time {
-  font-size: 9px;
-  color: #cca3a3;
-}
-
-.pet-talk-bubble {
-  background: #ffffff;
-  border: 1px solid rgba(244, 63, 94, 0.12);
-  border-radius: 4px 18px 18px 18px; 
-  padding: 12px 16px;
-  display: inline-block;
-  align-self: flex-start;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.02);
-  max-width: 90%;
-}
-
-.pet-talk-bubble p {
-  font-size: 13px;
-  font-weight: 700;
-  color: #44403c;
-  margin: 0;
-  line-height: 1.45;
-}
-
-/* ==========================================
-    💬 트렌디 집사토크(댓글창) 디자인 리뉴얼
-   ========================================== */
-.pet-talk-input-wrapper {
-  background: #ffffff;
-  border-radius: 24px;
-  border: 1.5px solid rgba(251, 207, 232, 0.8);
-  box-shadow: 0 10px 25px -5px rgba(225, 29, 72, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
-  padding: 8px 10px 8px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  transition: all 0.3s ease;
-}
-
-.pet-talk-input-wrapper:focus-within {
-  border-color: #e11d48;
-  box-shadow: 0 12px 30px -4px rgba(225, 29, 72, 0.15);
-}
-
-.pet-nickname-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding-bottom: 6px;
-  border-bottom: 1px dashed rgba(254, 205, 211, 0.5);
-}
-
-.pet-nickname-input {
-  width: 100%;
-  background: transparent;
-  font-size: 11px;
-  font-weight: 700;
-  color: #57534e;
-  border: none;
-  outline: none;
-}
-
-.pet-nickname-input::placeholder {
-  color: #a8a29e;
-}
-
-.pet-message-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.pet-message-input {
-  flex: 1;
-  background: transparent;
-  font-size: 12px;
-  font-weight: 700;
-  color: #292524;
-  border: none;
-  outline: none;
-  padding: 4px 0;
-}
-
-.pet-message-input::placeholder {
-  color: #a8a29e;
-  font-weight: 600;
-}
-
-.pet-submit-btn {
-  background: linear-gradient(135deg, #e11d48 0%, #db2777 100%);
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 800;
-  padding: 8px 14px;
-  border-radius: 16px;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.25);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  white-space: nowrap;
-}
-
-.pet-submit-btn:hover {
-  background: linear-gradient(135deg, #be123c 0%, #be185d 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(225, 29, 72, 0.35);
-}
-
-.pet-submit-btn:active {
-  transform: scale(0.96);
-}
-
-/* 📍 GPS 버튼 및 내 위치 마커 스타일 */
+/* 📍 GPS 버튼 및 내 위치 마커 */
 .pet-gps-marker {
   position: relative;
   width: 24px;
@@ -523,18 +329,12 @@
 }
 
 @keyframes gps-pulse-ani {
-  0% {
-    transform: scale(0.5);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1.6);
-    opacity: 0;
-  }
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
 }
 
 /* ==========================================
-    📱 모바일 스크린 예외 처리
+    📱 모바일 바텀시트 및 짤림 방지 최적화 
    ========================================== */
 @media (max-width: 640px) {
   .pet-filter-container {
@@ -542,22 +342,26 @@
     left: 12px;
     width: calc(100vw - 24px);
   }
+  
+  /* 모바일 사이드바를 컴팩트한 바텀시트로 재정의 */
   .pet-sidebar {
     left: 0;
+    right: 0;
+    bottom: 0;
     top: auto;
-    bottom: 0; 
-    width: 100%;
-    height: 55vh;
+    width: 100% !important;
+    height: 60vh !important; /* 중간 정도 높이 지정 */
     border-radius: 32px 32px 0 0;
-    background: linear-gradient(180deg, #fff5f5 0%, #ffffff 100%);
+    background: #ffffff;
+    box-shadow: 0 -10px 35px rgba(225, 29, 72, 0.12);
+    padding-bottom: 75px; /* 플로팅 네비게이션바 크기만큼 패딩 확보 */
   }
+
   .pet-sidebar ~ .pet-filter-container {
     left: 12px; 
   }
+
   .pet-modern-tab-box {
-    margin: 0 16px 12px 16px;
-  }
-  .pet-talk-feed {
-    max-height: calc(55vh - 160px) !important; 
+    margin: 0 16px 8px 16px;
   }
 }
