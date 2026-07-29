@@ -12,6 +12,9 @@ const KakaoCallback = () => {
   const [profileImgInput, setProfileImgInput] = useState('https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150');
   const [errorMessage, setErrorMessage] = useState('');
   
+  // 💡 추가: 현재 로그인한 카카오 유저의 고유 ID를 기억할 상태 변수
+  const [kakaoUserId, setKakaoUserId] = useState('');
+  
   const isProcessed = useRef(false);
 
   useEffect(() => {
@@ -31,7 +34,7 @@ const KakaoCallback = () => {
     const getKakaoUserInfo = async (authCode) => {
       try {
         const REST_API_KEY = "134311da296aade3f691343d92d9f168";
-        const REDIRECT_URI = "http://localhost:5173/oauth/kakao/callback";
+        const REDIRECT_URI = "https://pet-walk-map.vercel.app/oauth/kakao/callback";
 
         const tokenResponse = await fetch(`https://kauth.kakao.com/oauth/token`, {
           method: 'POST',
@@ -49,6 +52,8 @@ const KakaoCallback = () => {
         const tokenData = await tokenResponse.json();
         
         let kakaoNickname = '';
+        let currentId = '';
+
         if (tokenData.access_token) {
           const userResponse = await fetch(`https://kapi.kakao.com/v2/user/me`, {
             method: 'GET',
@@ -59,26 +64,43 @@ const KakaoCallback = () => {
           });
 
           const userData = await userResponse.json();
+          
+          // 💡 카카오가 발급하는 고유 회원번호 숫자 ID 추출
+          currentId = String(userData.id); 
+          setKakaoUserId(currentId);
+          
           const kakaoAccount = userData.kakao_account;
           kakaoNickname = kakaoAccount?.profile?.nickname || '';
         }
 
-        // 이미 기존에 상세 정보(프로필)가 저장된 유저인지 확인
-        const savedUserProfile = localStorage.getItem('pet_map_user_profile');
-        if (savedUserProfile) {
-          const parsed = JSON.parse(savedUserProfile);
-          localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('pet_map_user', parsed.nickname);
-          navigate('/', { replace: true });
-        } else {
-          if (kakaoNickname) {
-            setNicknameInput(kakaoNickname);
+        if (currentId) {
+          // 💡 기기 간 식별용으로 카카오 고유 ID를 저장합니다.
+          localStorage.setItem('pet_map_user_id', currentId);
+
+          // 💡 전체 프로필 딕셔너리에서 이 카카오 ID로 가입된 정보가 있는지 조회합니다.
+          const allProfiles = JSON.parse(localStorage.getItem('pet_map_all_profiles') || '{}');
+          const existingProfile = allProfiles[currentId];
+
+          if (existingProfile) {
+            // 이미 다른 기기나 예전에 프로필 정보를 입력한 적이 있다면 추가 입력 없이 자동 연동!
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('pet_map_user', existingProfile.nickname);
+            localStorage.setItem('pet_map_user_profile', JSON.stringify(existingProfile));
+            navigate('/', { replace: true });
+            return;
           }
-          setShowSetupModal(true);
         }
+
+        // 기존 백업 로직 예외 처리 및 최초 로그인 시 모달 오픈
+        if (kakaoNickname) {
+          setNicknameInput(kakaoNickname);
+        }
+        setShowSetupModal(true);
 
       } catch (error) {
         console.error("카카오 로그인 통신 중 오류 발생:", error);
+        
+        // 에러 발생 시 기존 로컬 스토리지 데이터 백업 확인 로직 유지
         const savedUserProfile = localStorage.getItem('pet_map_user_profile');
         if (savedUserProfile) {
           const parsed = JSON.parse(savedUserProfile);
@@ -119,6 +141,7 @@ const KakaoCallback = () => {
       return;
     }
 
+    // 닉네임 중복 검사 로직 유지
     const existingUsersJSON = localStorage.getItem('pet_map_all_users') || '[]';
     const existingUsers = JSON.parse(existingUsersJSON);
     
@@ -130,13 +153,23 @@ const KakaoCallback = () => {
     existingUsers.push(trimmedNickname);
     localStorage.setItem('pet_map_all_users', JSON.stringify(existingUsers));
 
+    // 💡 저장할 프로필 데이터 구조 정의 (고유 ID 추가)
     const userProfile = {
+      id: kakaoUserId || 'guest',
       nickname: trimmedNickname,
       gender: genderInput,
       dogBreed: dogBreedInput.trim(),
       profileImg: profileImgInput
     };
 
+    // 💡 전체 기기 공유 매핑 테이블(`pet_map_all_profiles`)에 카카오 ID 기준으로 등록
+    if (kakaoUserId) {
+      const allProfiles = JSON.parse(localStorage.getItem('pet_map_all_profiles') || '{}');
+      allProfiles[kakaoUserId] = userProfile;
+      localStorage.setItem('pet_map_all_profiles', JSON.stringify(allProfiles));
+    }
+
+    // 세션 기본 활성화 처리
     localStorage.setItem('isLoggedIn', 'true');
     localStorage.setItem('pet_map_user', trimmedNickname);
     localStorage.setItem('pet_map_user_profile', JSON.stringify(userProfile));

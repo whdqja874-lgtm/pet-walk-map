@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import KakaoCallback from './pages/KakaoCallback';
 import './App.css';
 
+// 상대 시간 변환 함수
 const formatRelativeTime = (timestamp) => {
   if (!timestamp) return '방금 전';
   const now = Date.now();
@@ -18,6 +19,7 @@ const formatRelativeTime = (timestamp) => {
   return `${elapsedDays}일 전`;
 };
 
+// 두 좌표 간의 거리 계산 함수 (반경 필터용)
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371; 
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -35,16 +37,23 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 function AppMain() {
   const [mainTab, setMainTab] = useState('map'); 
   
-  const [currentUser, setCurrentUser] = useState(() => {
-    try {
-      return localStorage.getItem('pet_map_user') || ''; 
-    } catch (e) {
-      return '';
-    }
+  // 카카오 고유 식별자 ID 상태
+  const [currentUserId, setCurrentUserId] = useState(() => {
+    return localStorage.getItem('pet_map_user_id') || '';
   });
 
+  const [currentUser, setCurrentUser] = useState(() => {
+    return localStorage.getItem('pet_map_user') || ''; 
+  });
+
+  // 카카오 고유 ID별로 프로필을 매핑하여 저장/불러오기
   const [userProfile, setUserProfile] = useState(() => {
     try {
+      const kakaoId = localStorage.getItem('pet_map_user_id');
+      if (kakaoId) {
+        const allProfiles = JSON.parse(localStorage.getItem('pet_map_all_profiles') || '{}');
+        if (allProfiles[kakaoId]) return allProfiles[kakaoId];
+      }
       const saved = localStorage.getItem('pet_map_user_profile');
       return saved ? JSON.parse(saved) : null;
     } catch (e) {
@@ -60,7 +69,7 @@ function AppMain() {
   const [editProfileImg, setEditProfileImg] = useState('');
   const [editError, setEditError] = useState('');
 
-  // 전체 유저가 작성한 글을 localStorage에서 실시간 공유 동기화
+  // 전체 유저 산책 피드
   const [walkPosts, setWalkPosts] = useState(() => {
     try {
       const savedPosts = localStorage.getItem('pet_map_walk_posts');
@@ -111,12 +120,30 @@ function AppMain() {
     activeFilterRef.current = activeFilter;
   }, [activeFilter]);
 
+  // 자동 로그인 및 다중 기기 연동을 위한 카카오 고유 ID 감지 및 동기화
   useEffect(() => {
-    const savedUser = localStorage.getItem('pet_map_user');
-    if (savedUser) setCurrentUser(savedUser);
-    const savedProfile = localStorage.getItem('pet_map_user_profile');
-    if (savedProfile) setUserProfile(JSON.parse(savedProfile));
+    const handleCheckLogin = () => {
+      const savedUserId = localStorage.getItem('pet_map_user_id');
+      const savedUser = localStorage.getItem('pet_map_user');
+      
+      if (savedUserId) {
+        setCurrentUserId(savedUserId);
+        setCurrentUser(savedUser || '카카오유저');
+        
+        const allProfiles = JSON.parse(localStorage.getItem('pet_map_all_profiles') || '{}');
+        if (allProfiles[savedUserId]) {
+          setUserProfile(allProfiles[savedUserId]);
+          setCurrentUser(allProfiles[savedUserId].nickname);
+        }
+      }
+    };
 
+    handleCheckLogin();
+    window.addEventListener('storage', handleCheckLogin);
+    return () => window.removeEventListener('storage', handleCheckLogin);
+  }, []);
+
+  useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -125,14 +152,11 @@ function AppMain() {
             lng: position.coords.longitude
           });
         },
-        (error) => {
-          console.error('위치 정보를 가져오지 못했습니다.', error);
-        },
+        (error) => console.error(error),
         { enableHighAccuracy: true }
       );
     }
 
-    // 다른 브라우저 탭이나 유저가 localStorage 변경 시 실시간으로 피드 갱신 반영
     const handleStorageChange = (e) => {
       if (e.key === 'pet_map_walk_posts') {
         setWalkPosts(e.newValue ? JSON.parse(e.newValue) : []);
@@ -159,9 +183,11 @@ function AppMain() {
   };
 
   const handleLogout = () => {
+    setCurrentUserId('');
     setCurrentUser('');
     setUserProfile(null);
     localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('pet_map_user_id');
     localStorage.removeItem('pet_map_user');
     localStorage.removeItem('pet_map_user_profile');
     alert('로그아웃 되었습니다. 👋');
@@ -201,21 +227,28 @@ function AppMain() {
     }
 
     const updatedProfile = {
-      ...userProfile,
+      id: currentUserId || 'guest',
       nickname: trimmed,
       gender: editGender,
       dogBreed: editDogBreed.trim(),
       profileImg: editProfileImg
     };
 
+    if (currentUserId) {
+      const allProfiles = JSON.parse(localStorage.getItem('pet_map_all_profiles') || '{}');
+      allProfiles[currentUserId] = updatedProfile;
+      localStorage.setItem('pet_map_all_profiles', JSON.stringify(allProfiles));
+    }
+
     setUserProfile(updatedProfile);
     setCurrentUser(trimmed);
     localStorage.setItem('pet_map_user', trimmed);
     localStorage.setItem('pet_map_user_profile', JSON.stringify(updatedProfile));
     setIsEditModalOpen(false);
-    alert('정보가 성공적으로 수정되었습니다! ✨');
+    alert('정보가 성공적으로 저장되었습니다! 다음 로그인부터 자동 연동됩니다. ✨');
   };
 
+  // 지도 탭 활성화 시 카카오맵 초기화 및 로드
   useEffect(() => {
     if (mainTab !== 'map') return;
 
@@ -536,12 +569,7 @@ function AppMain() {
     const updatedReviews = [newReview, ...(reviewsStorageRef.current[selectedPlace.id] || [])];
     reviewsStorageRef.current[selectedPlace.id] = updatedReviews;
 
-    try {
-      localStorage.setItem('pet_map_reviews', JSON.stringify(reviewsStorageRef.current));
-    } catch (e) {
-      console.error('저장 실패:', e);
-    }
-
+    localStorage.setItem('pet_map_reviews', JSON.stringify(reviewsStorageRef.current));
     setSelectedPlace(prev => prev ? { ...prev, reviews: updatedReviews } : null);
     setReviewInput('');
   };
@@ -583,7 +611,7 @@ function AppMain() {
 
     const newPost = {
       id: Date.now(),
-      rawAuthor: currentUser,
+      rawAuthor: currentUserId || currentUser, // 고유 식별자 연동
       author: `${currentUser}${breedDisplay}`,
       authorGender: userProfile?.gender || '여성',
       authorImg: userProfile?.profileImg || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150',
@@ -605,7 +633,7 @@ function AppMain() {
   };
 
   const handleEditWalkPost = (post) => {
-    if (currentUser !== post.rawAuthor) {
+    if ((currentUserId && currentUserId !== post.rawAuthor) && currentUser !== post.rawAuthor) {
       alert('본인이 작성한 글만 수정할 수 있습니다!');
       return;
     }
@@ -623,7 +651,7 @@ function AppMain() {
   };
 
   const handleDeleteWalkPost = (postId, postRawAuthor) => {
-    if (currentUser !== postRawAuthor) {
+    if ((currentUserId && currentUserId !== postRawAuthor) && currentUser !== postRawAuthor) {
       alert('본인이 작성한 글만 삭제할 수 있습니다!');
       return;
     }
@@ -665,7 +693,7 @@ function AppMain() {
     setCommentInputs(prev => ({ ...prev, [postId]: '' }));
   };
 
-  // 피드 연동 버그 수정: 특정 작성자 필터링 없이 다중 유저 데이터 전체 출력 보장
+  // 피드 필터링 로직 (모든 유저 글 연동)
   const filteredWalkPosts = walkPosts.filter(post => {
     if (walkFilterType !== 'all' && post.postType !== walkFilterType) return false;
     if (walkScopeFilter === 'local') {
@@ -679,7 +707,7 @@ function AppMain() {
   return (
     <div className="flex flex-col h-screen w-screen bg-[#fff9fa] overflow-hidden relative font-sans antialiased text-stone-800 pb-20 md:pb-0">
       
-      {/* 데스크톱/태블릿 헤더 */}
+      {/* 💻 데스크톱 헤더 */}
       <header className="hidden md:flex h-16 bg-white/85 backdrop-blur-md border-b border-rose-100/60 items-center justify-between px-6 z-40 shrink-0 shadow-xs">
         <div className="flex items-center bg-rose-50/80 p-1 rounded-2xl border border-rose-100/60">
           <button
@@ -700,7 +728,7 @@ function AppMain() {
           </button>
         </div>
 
-        {/* 1번 수정: 우측 상단 로그인 상태바 및 직관적인 로그아웃 레이아웃 */}
+        {/* 우측 상단 완벽 고정 로그인 상태바 */}
         <div className="flex items-center gap-3">
           {currentUser ? (
             <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-rose-100 shadow-sm">
@@ -721,9 +749,9 @@ function AppMain() {
         </div>
       </header>
 
-      {/* 모바일 최상단 유저 간이 바 */}
+      {/* 📱 모바일 최상단 유저 상태 바 */}
       <div className="md:hidden flex h-12 bg-white/95 border-b border-rose-100 items-center justify-between px-4 z-40 shrink-0">
-        <span className="text-xs font-black text-rose-900 tracking-wider">🐾 댕냥크루</span>
+        <span className="text-xs font-black text-rose-950 tracking-wider">🐾 댕냥크루</span>
         {currentUser ? (
           <div className="flex items-center gap-2">
             <span className="text-[11px] text-stone-600 font-bold">{currentUser}님</span>
@@ -859,7 +887,7 @@ function AppMain() {
               <div className="text-4xl hidden sm:block bg-white/10 p-2.5 rounded-2xl">🐕</div>
             </div>
 
-            {/* 작성 폼 */}
+            {/* 글 작성 폼 */}
             <div className="bg-white p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] shadow-md border border-rose-100/80">
               <h3 className="text-xs md:text-sm font-black text-rose-950 mb-3 flex items-center gap-2">✍️ {editingPostId ? '글 수정하기' : '새 산책 메이트 모집'}</h3>
               {currentUser ? (
@@ -944,9 +972,9 @@ function AppMain() {
 
                   {/* 댓글 섹션 */}
                   <div className="bg-stone-50/70 p-3 rounded-xl space-y-2">
-                    <span className="text-[10px] font-black text-stone-500 block">댓글 ({post.comments.length})</span>
+                    <span className="text-[10px] font-black text-stone-500 block">댓글 ({post.comments?.length || 0})</span>
                     <div className="space-y-1.5 max-h-32 overflow-y-auto">
-                      {post.comments.map(c => (
+                      {post.comments?.map(c => (
                         <div key={c.id} className="bg-white p-2 rounded-lg border border-stone-100 text-[11px]">
                           <span className="font-bold text-stone-800">{c.author}: </span>
                           <span className="text-stone-600">{c.text}</span>
@@ -965,7 +993,7 @@ function AppMain() {
                     </div>
                   </div>
                   
-                  {currentUser && currentUser === post.rawAuthor && (
+                  {(currentUserId === post.rawAuthor || currentUser === post.rawAuthor) && (
                     <div className="flex justify-end gap-1.5 pt-1 text-[10px]">
                       <button onClick={() => handleEditWalkPost(post)} className="text-stone-500 hover:underline">수정</button>
                       <button onClick={() => handleDeleteWalkPost(post.id, post.rawAuthor)} className="text-rose-500 hover:underline">삭제</button>
@@ -980,7 +1008,7 @@ function AppMain() {
 
       </div>
 
-      {/* 하단 플로팅 탭바 */}
+      {/* 모바일 하단 플로팅 탭바 */}
       <nav className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-sm h-14 bg-white/90 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-around z-50 px-3 shadow-[0_12px_32px_rgba(225,29,72,0.18)]">
         <button 
           onClick={() => setMainTab('map')}
@@ -1006,12 +1034,12 @@ function AppMain() {
         </button>
       </nav>
 
-      {/* 회원정보 수정 모달 */}
+      {/* 회원정보 입력/수정 모달 */}
       {isEditModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-5 max-w-xs w-full shadow-2xl space-y-3 border border-rose-100 animate-fade-in">
             <div className="flex items-center justify-between border-b border-stone-100 pb-2">
-              <h3 className="text-sm font-black text-rose-950">내 정보 수정</h3>
+              <h3 className="text-sm font-black text-rose-950">내 프로필 설정</h3>
               <button onClick={() => setIsEditModalOpen(false)} className="text-stone-400 text-xs">✕</button>
             </div>
             {editError && <div className="text-[10px] text-rose-600 bg-rose-50 p-2 rounded-lg text-center font-bold">{editError}</div>}
@@ -1033,7 +1061,7 @@ function AppMain() {
               </div>
               <div className="space-y-0.5">
                 <label className="text-[10px] font-bold text-stone-500">강아지 종</label>
-                <input type="text" value={editDogBreed} onChange={(e) => setEditDogBreed(e.target.value)} className="w-full px-3 py-2 text-xs rounded-lg border border-stone-200" />
+                <input type="text" value={editDogBreed} onChange={(e) => setEditDogBreed(e.target.value)} className="w-full px-3 py-2 text-xs rounded-lg border border-stone-200" placeholder="예: 말티즈, 포메라니안" />
               </div>
               <div className="flex gap-2 pt-1">
                 <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 py-2 bg-stone-100 text-stone-600 text-xs font-bold rounded-lg">취소</button>
