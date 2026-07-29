@@ -19,7 +19,6 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* 🔍 스크롤 바 없애는 유틸리티 (2번, 3번 해결책) */
 .no-scrollbar::-webkit-scrollbar {
   display: none !important;
 }
@@ -29,7 +28,7 @@
 }
 
 /* ==========================================
-    🐾 펫 프렌들리 지도 앱: 러블리 파우더 핑크 스킨
+    🐾 펫 프렌들리 지도 앱: 감성 밀크티 핑크 스킨 보정
    ========================================== */
 .pet-paw-marker {
   width: 48px;
@@ -71,8 +70,8 @@
   backdrop-filter: blur(12px);
   padding: 8px 12px;
   border-radius: 20px;
-  box-shadow: 0 12px 30px rgba(225, 29, 72, 0.06), 0 2px 8px rgba(0, 0, 0, 0.02);
-  border: 1px solid rgba(255, 228, 230, 0.6);
+  box-shadow: 0 12px 30px rgba(124, 106, 101, 0.06), 0 2px 8px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(230, 220, 218, 0.6);
   max-width: calc(100vw - 40px);
   overflow-x: auto;
   scrollbar-width: none;
@@ -87,9 +86,9 @@
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 800;
-  color: #8c737c;
+  color: #7c6a65;
   background: #ffffff;
-  border: 1px solid #f3eef0;
+  border: 1px solid #edf0ee;
   border-radius: 9999px;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -97,17 +96,18 @@
 }
 
 .pet-filter-chip:hover {
-  background: #ffe4e6;
-  color: #e11d48;
-  border-color: #fecdd3;
+  background: #f5ebe6;
+  color: #7c6a65;
+  border-color: #dccbc4;
   transform: translateY(-1px);
 }
 
+/* 변경 완료: 필터 칩 활성화 그라데이션 수정 (빨간색 제거 -> 소프트 밀크티 브라운) */
 .pet-filter-chip.active {
-  background: linear-gradient(135deg, #e11d48 0%, #db2777 100%);
+  background: linear-gradient(135deg, #8c7873 0%, #6e5c57 100%);
   color: #ffffff;
   border-color: transparent;
-  box-shadow: 0 8px 16px rgba(225, 29, 72, 0.2);
+  box-shadow: 0 8px 16px rgba(124, 106, 101, 0.2);
 }
 
 .pet-sidebar ~ .pet-filter-container {
@@ -122,8 +122,8 @@
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(8px);
   border-radius: 22px;
-  border: 1px solid rgba(251, 207, 232, 0.8);
-  box-shadow: 0 20px 25px -5px rgba(225, 29, 72, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(220, 210, 205, 0.8);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
   padding: 16px;
   width: 275px; 
   z-index: 999;
@@ -138,7 +138,7 @@
 .pet-map-card-simple strong {
   font-size: 17px;
   font-weight: 900;
-  color: #4c0519;
+  color: #2e2522;
   display: block;
   white-space: nowrap;
   overflow: hidden;
@@ -156,21 +156,21 @@
 }
 
 .pet-map-tag.facility {
-  background-color: #ffe4e6;
-  color: #9f1239;
+  background-color: #f5ebe6;
+  color: #7c6a65;
 }
 
 .pet-map-tag.friendly {
-  background-color: #f3eef0;
-  color: #8c737c;
+  background-color: #f0eae8;
+  color: #8a7a75;
 }
 
 .pet-map-preview-info {
   margin-top: 4px;
   padding: 10px 12px;
-  background-color: #fff1f2;
+  background-color: #fcf9f8;
   border-radius: 12px;
-  border: 1px solid #ffe4e6;
+  border: 1px solid #f2eae6;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -186,17 +186,18 @@
 }
 
 .preview-address {
-  color: #4c0519;
+  color: #4a3e3b;
 }
 
 .preview-phone {
-  color: #db2777;
+  color: #b57c70;
 }
 
+/* 변경 완료: 지도 오버레이 말풍선 내 상세보기 버튼 색상 수정 */
 .pet-map-btn {
   margin-top: 4px;
   width: 100%;
-  background: linear-gradient(135deg, #e11d48 0%, #db2777 100%);
+  background: linear-gradient(135deg, #b57c70 0%, #9a6459 100%);
   color: white;
   border: none;
   border-radius: 12px;
@@ -204,13 +205,13 @@
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 4px 6px -1px rgba(225, 29, 72, 0.2);
+  box-shadow: 0 4px 6px -1px rgba(181, 124, 112, 0.2);
   transition: all 0.2s ease;
 }
 
 .pet-map-btn:hover {
-  background: linear-gradient(135deg, #be123c 0%, #c2185b 100%);
-  box-shadow: 0 6px 12px -1px rgba(225, 29, 72, 0.35);
+  background: linear-gradient(135deg, #9a6459 0%, #835248 100%);
+  box-shadow: 0 6px 12px -1px rgba(181, 124, 112, 0.35);
 }
 
 .pet-map-arrow {
@@ -234,12 +235,12 @@
   top: 96px;
   bottom: 24px;
   width: 390px;
-  background: linear-gradient(160deg, #fff5f5 0%, #fff1f2 40%, #ffffff 100%);
-  border: 1px solid rgba(244, 63, 94, 0.2);
+  background: linear-gradient(160deg, #faf6f5 0%, #f7f0ee 40%, #ffffff 100%);
+  border: 1px solid rgba(124, 106, 101, 0.15);
   border-radius: 32px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 30px 60px -15px rgba(225, 29, 72, 0.15);
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.08);
   z-index: 99999 !important;
   overflow: hidden;
 }
@@ -248,14 +249,14 @@
   position: absolute;
   top: 24px;
   right: 18px;
-  background: #ffe4e6;
+  background: #f5ebe6;
   border: none;
   width: 32px;
   height: 32px;
   border-radius: 9999px;
   font-size: 12px;
   font-weight: bold;
-  color: #be123c;
+  color: #7c6a65;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -265,17 +266,17 @@
 }
 
 .pet-sidebar-close:hover {
-  background: #fecdd3;
+  background: #ebdcd5;
   transform: rotate(90deg);
 }
 
 .pet-modern-tab-box {
   display: flex;
-  background: rgba(225, 29, 72, 0.05);
+  background: rgba(124, 106, 101, 0.05);
   padding: 6px;
   margin: 0 24px 16px 24px;
   border-radius: 9999px;
-  border: 1px solid rgba(244, 63, 94, 0.08);
+  border: 1px solid rgba(124, 106, 101, 0.08);
 }
 
 .pet-modern-tab-btn {
@@ -284,7 +285,7 @@
   border-radius: 9999px;
   font-size: 13px;
   font-weight: 800;
-  color: #fda4af;
+  color: #c5b5b0;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -293,8 +294,8 @@
 
 .pet-modern-tab-btn.active {
   background: #ffffff;
-  color: #be123c;
-  box-shadow: 0 6px 15px rgba(225, 29, 72, 0.12);
+  color: #7c6a65;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
   transform: scale(1.02);
 }
 
@@ -311,10 +312,10 @@
 .gps-dot {
   width: 14px;
   height: 14px;
-  background-color: #3b82f6;
+  background-color: #b57c70;
   border: 2px solid white;
   border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   z-index: 2;
 }
 
@@ -322,7 +323,7 @@
   position: absolute;
   width: 36px;
   height: 36px;
-  background-color: rgba(59, 130, 246, 0.4);
+  background-color: rgba(181, 124, 112, 0.3);
   border-radius: 50%;
   animation: gps-pulse-ani 1.5s infinite ease-out;
   z-index: 1;
@@ -334,7 +335,7 @@
 }
 
 /* ==========================================
-    📱 모바일 바텀시트 및 짤림 방지 최적화 
+    📱 모바일 바텀시트 및 레이아웃 최적화
    ========================================== */
 @media (max-width: 640px) {
   .pet-filter-container {
@@ -343,18 +344,17 @@
     width: calc(100vw - 24px);
   }
   
-  /* 모바일 사이드바를 컴팩트한 바텀시트로 재정의 */
   .pet-sidebar {
     left: 0;
     right: 0;
     bottom: 0;
     top: auto;
     width: 100% !important;
-    height: 60vh !important; /* 중간 정도 높이 지정 */
+    height: 60vh !important; 
     border-radius: 32px 32px 0 0;
     background: #ffffff;
-    box-shadow: 0 -10px 35px rgba(225, 29, 72, 0.12);
-    padding-bottom: 75px; /* 플로팅 네비게이션바 크기만큼 패딩 확보 */
+    box-shadow: 0 -10px 35px rgba(0, 0, 0, 0.05);
+    padding-bottom: 75px; 
   }
 
   .pet-sidebar ~ .pet-filter-container {
