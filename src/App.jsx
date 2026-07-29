@@ -153,7 +153,7 @@ function AppMain() {
 
   const handleKakaoLogin = () => {
     const REST_API_KEY = "134311da296aade3f691343d92d9f168";
-    const REDIRECT_URI = "http://localhost:5173/oauth/kakao/callback";
+    const REDIRECT_URI = "https://pet-walk-map.vercel.app/oauth/kakao/callback";
     const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
     window.location.href = kakaoAuthUrl;
   };
