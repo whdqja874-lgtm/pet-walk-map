@@ -356,7 +356,7 @@ function AppMain() {
     if (!map) return;
     const markerPosition = new window.kakao.maps.LatLng(place.y, place.x);
     const isPurePetFacility = place.category_name.includes('동물') || place.category_name.includes('애견') || place.category_name.includes('반려');
-    const pinColor = isPurePetFacility ? '#c084fc' : '#b4aad0'; // 마커 핀 색상도 분위기에 맞게 라벤더퍼플 계열로 보정
+    const pinColor = isPurePetFacility ? '#e11d48' : '#e2d9db'; 
     const lastCategory = place.category_name.split(' > ').pop();
     const tagText = isPurePetFacility ? lastCategory : `${lastCategory} (동반 🐾)`;
 
@@ -432,6 +432,7 @@ function AppMain() {
       clickable: true
     });
 
+    // 1단계 수정: 상세보기 클릭 시에만 사이드바 오픈
     detailBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       setSelectedPlace({
@@ -445,7 +446,7 @@ function AppMain() {
         reviews: reviewsStorageRef.current[place.id] || []
       });
       setActiveTab('info');
-      detailOverlay.setMap(null); 
+      detailOverlay.setMap(null); // 사이드바가 켜질 때 말풍선은 닫음
     });
 
     const arrow = document.createElement('div');
@@ -459,6 +460,7 @@ function AppMain() {
     overlayContent.appendChild(cardSimple);
     overlayContent.appendChild(arrow);
 
+    // 1단계 수정: 발자국 누르면 말풍선(Overlay)만 노출
     markerContent.onclick = (e) => {
       e.stopPropagation();
       if (currentOverlayRef.current) currentOverlayRef.current.setMap(null); 
@@ -699,11 +701,11 @@ function AppMain() {
       
       {/* 데스크톱/태블릿 헤더 */}
       <header className="hidden md:flex h-16 bg-white/85 backdrop-blur-md border-b border-rose-100/60 items-center justify-between px-6 z-40 shrink-0 shadow-xs">
-        <div className="flex items-center bg-stone-100 p-1 rounded-2xl border border-stone-200">
+        <div className="flex items-center bg-rose-50/80 p-1 rounded-2xl border border-rose-100/60">
           <button
             onClick={() => setMainTab('map')}
             className={`px-5 py-2 rounded-xl font-bold text-xs transition-all duration-200 flex items-center gap-2 ${
-              mainTab === 'map' ? 'bg-[#7c6a65] text-white shadow-md scale-105' : 'text-stone-500 hover:text-stone-800 hover:bg-stone-200/50'
+              mainTab === 'map' ? 'bg-rose-600 text-white shadow-md shadow-rose-200 scale-105' : 'text-stone-500 hover:text-rose-600 hover:bg-rose-100/40'
             }`}
           >
             🗺️ <span>댕냥맵</span>
@@ -711,7 +713,7 @@ function AppMain() {
           <button
             onClick={() => setMainTab('walk')}
             className={`px-5 py-2 rounded-xl font-bold text-xs transition-all duration-200 flex items-center gap-2 ${
-              mainTab === 'walk' ? 'bg-[#7c6a65] text-white shadow-md scale-105' : 'text-stone-500 hover:text-stone-800 hover:bg-stone-200/50'
+              mainTab === 'walk' ? 'bg-rose-600 text-white shadow-md shadow-rose-200 scale-105' : 'text-stone-500 hover:text-rose-600 hover:bg-rose-100/40'
             }`}
           >
             🐾 <span>동네산책</span>
@@ -723,11 +725,11 @@ function AppMain() {
             <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-rose-100 shadow-xs">
               <div className="flex items-center gap-2">
                 <img src={userProfile?.profileImg} alt="프로필" className="w-7 h-7 rounded-full object-cover border border-rose-200" />
-                <span className="text-xs font-bold text-stone-800"><b>{currentUser}</b>님</span>
+                <span className="text-xs font-bold text-rose-950"><b>{currentUser}</b>님</span>
               </div>
               <div className="flex items-center gap-2 pl-2 border-l border-stone-200">
-                <button onClick={openEditModal} className="text-[11px] font-bold text-[#b57c70] hover:underline">정보수정</button>
-                <button onClick={handleLogout} className="text-[11px] font-bold text-stone-400 hover:text-stone-600">로그아웃</button>
+                <button onClick={openEditModal} className="text-[11px] font-bold text-rose-600 hover:underline">정보수정</button>
+                <button onClick={handleLogout} className="text-[11px] font-bold text-stone-400 hover:text-rose-600">로그아웃</button>
               </div>
             </div>
           ) : (
@@ -740,11 +742,11 @@ function AppMain() {
 
       {/* 모바일 최상단 유저 간이 바 */}
       <div className="md:hidden flex h-12 bg-white/95 border-b border-rose-100 items-center justify-between px-4 z-40 shrink-0">
-        <span className="text-xs font-black text-[#7c6a65] tracking-wider">🐾 댕냥크루</span>
+        <span className="text-xs font-black text-rose-900 tracking-wider">🐾 댕냥크루</span>
         {currentUser ? (
           <div className="flex items-center gap-2">
             <span className="text-[11px] text-stone-600 font-bold">{currentUser}님</span>
-            <button onClick={openEditModal} className="text-[10px] text-[#b57c70] font-bold px-2 py-0.5 bg-stone-50 rounded-md border border-stone-100">수정</button>
+            <button onClick={openEditModal} className="text-[10px] text-rose-600 font-bold px-2 py-0.5 bg-rose-50 rounded-md border border-rose-100">수정</button>
           </div>
         ) : (
           <button onClick={handleKakaoLogin} className="text-[10px] font-extrabold bg-[#FEE500] px-2.5 py-1 rounded-lg">💬 로그인</button>
@@ -760,7 +762,7 @@ function AppMain() {
           <div className="absolute top-3 left-0 right-0 z-30 flex items-center gap-2 px-3 overflow-x-auto no-scrollbar pointer-events-none select-none touch-pan-x">
             <button 
               onClick={handleMoveToCurrentLocation}
-              className="bg-white text-[#7c6a65] font-bold p-2.5 rounded-xl shadow-lg border border-stone-100 flex items-center justify-center pointer-events-auto shrink-0 touch-manipulation"
+              className="bg-white text-rose-600 font-bold p-2.5 rounded-xl shadow-lg border border-rose-100 flex items-center justify-center pointer-events-auto shrink-0 touch-manipulation"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
                 <circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3" strokeLinecap="round"/>
@@ -772,7 +774,7 @@ function AppMain() {
                 <button
                   key={option.id}
                   className={`pet-filter-chip shrink-0 text-xs px-3 py-1.5 rounded-xl border font-bold transition-all shadow-sm ${
-                    activeFilter === option.id ? 'bg-[#7c6a65] border-[#7c6a65] text-white' : 'bg-white text-stone-600 border-stone-200'
+                    activeFilter === option.id ? 'bg-rose-600 border-rose-600 text-white' : 'bg-white text-stone-600 border-stone-200'
                   }`}
                   onClick={() => setActiveFilter(option.id)}
                 >
@@ -782,27 +784,28 @@ function AppMain() {
             </div>
           </div>
 
-          {/* 플레이스 상세 정보 사이드바 */}
+          {/* 플레이스 상세 정보 사이드바 (모바일 짤림 방지 및 스크롤바 삭제 보완) */}
           {selectedPlace && (
             <div className="pet-sidebar fixed md:absolute bottom-0 md:top-0 left-0 right-0 md:right-auto md:w-96 max-h-[60vh] md:max-h-full bg-white rounded-t-[2rem] md:rounded-none shadow-2xl flex flex-col z-40 animate-slide-in overflow-hidden">
               <button className="pet-sidebar-close absolute top-4 right-4 text-stone-400 font-bold z-50 p-2" onClick={() => setSelectedPlace(null)}>✕</button>
               
               <div className="pt-7 pb-3 px-6 flex flex-col items-center text-center shrink-0">
-                <h2 className="text-base md:text-2xl font-black text-stone-900 tracking-tight leading-tight mb-1.5 max-w-[85%]">{selectedPlace.place_name}</h2>
+                <h2 className="text-base md:text-2xl font-black text-rose-950 tracking-tight leading-tight mb-1.5 max-w-[85%]">{selectedPlace.place_name}</h2>
                 <span className={`pet-map-tag ${selectedPlace.isPurePetFacility ? 'facility' : 'friendly'}`}>
                   {selectedPlace.tagText}
                 </span>
               </div>
 
               <div className="pet-modern-tab-box flex border-b border-stone-100 shrink-0">
-                <button className={`flex-1 text-center py-2.5 text-xs font-bold ${activeTab === 'info' ? 'text-[#b57c70] border-b-2 border-[#b57c70]' : 'text-stone-400'}`} onClick={() => setActiveTab('info')}>
+                <button className={`flex-1 text-center py-2.5 text-xs font-bold ${activeTab === 'info' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-stone-400'}`} onClick={() => setActiveTab('info')}>
                   <span>✨ 플레이스</span>
                 </button>
-                <button className={`flex-1 text-center py-2.5 text-xs font-bold ${activeTab === 'review' ? 'text-[#b57c70] border-b-2 border-[#b57c70]' : 'text-stone-400'}`} onClick={() => setActiveTab('review')}>
+                <button className={`flex-1 text-center py-2.5 text-xs font-bold ${activeTab === 'review' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-stone-400'}`} onClick={() => setActiveTab('review')}>
                   <span>💬 집사토크 ({selectedPlace.reviews?.length || 0})</span>
                 </button>
               </div>
 
+              {/* 2번 & 3번 요구사항 수정: 내부 컨테이너 스크롤 지원 및 스크롤바 히든 */}
               <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-4">
                 {activeTab === 'info' ? (
                   <div className="space-y-3 py-1">
@@ -813,17 +816,17 @@ function AppMain() {
                     {selectedPlace.phone && (
                       <div className="bg-stone-50 p-3.5 rounded-2xl border border-stone-100">
                         <span className="text-[10px] font-bold text-stone-400 block mb-0.5">연락처</span>
-                        <p className="text-xs text-[#b57c70] font-black tracking-wider">{selectedPlace.phone}</p>
+                        <p className="text-xs text-rose-600 font-black tracking-wider">{selectedPlace.phone}</p>
                       </div>
                     )}
                     <div className="pt-2">
-                      {/* 변경 완료: 카카오맵 상세보기 버튼 배경색 변경 (소프트 딥 로즈 브라운) */}
-                      <a href={selectedPlace.place_url} target="_blank" rel="noreferrer" className="block w-full text-center bg-[#b57c70] hover:bg-[#9a6459] text-white text-xs font-bold py-3 rounded-xl shadow-md transition-colors">
+                      <a href={selectedPlace.place_url} target="_blank" rel="noreferrer" className="block w-full text-center bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-3 rounded-xl shadow-md transition-colors">
                         카카오맵에서 더 자세히 보기 🗺️
                       </a>
                     </div>
                   </div>
                 ) : (
+                  // 3번 수정: 집사토크 댓글 리스트 스크롤 영역과 하단 댓글창 배치 분리 고정
                   <div className="flex flex-col h-full min-h-[25vh]">
                     <div className="flex-1 overflow-y-auto no-scrollbar space-y-2.5 pr-1 pb-2">
                       {!selectedPlace.reviews || selectedPlace.reviews.length === 0 ? (
@@ -832,7 +835,7 @@ function AppMain() {
                         </div>
                       ) : (
                         selectedPlace.reviews.map(r => (
-                          <div key={r.id} className="bg-stone-50 p-2.5 rounded-2xl border border-stone-100">
+                          <div key={r.id} className="bg-rose-50/50 p-2.5 rounded-2xl border border-rose-100/40">
                             <div className="flex items-center gap-2 mb-1">
                               <img src={r.userImg} alt="유저" className="w-5 h-5 rounded-full object-cover" />
                               <span className="text-[11px] font-bold text-stone-800">{r.user}</span>
@@ -867,25 +870,24 @@ function AppMain() {
         <div className={`absolute inset-0 bg-[#fff5f6]/60 overflow-y-auto p-3 md:p-10 transition-opacity duration-200 ${mainTab === 'walk' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'}`}>
           <div className="max-w-2xl mx-auto space-y-4 md:space-y-6">
             
-            {/* 상단 카드 배너 색상도 한층 무드 있는 브라운 딥 로즈 그라데이션으로 매칭 */}
-            <div className="bg-gradient-to-br from-[#8c7873] via-[#7c6a65] to-[#b57c70] text-white p-5 md:p-7 rounded-[1.5rem] md:rounded-[2rem] shadow-xl flex items-center justify-between">
+            <div className="bg-gradient-to-br from-rose-500 via-rose-600 to-pink-500 text-white p-5 md:p-7 rounded-[1.5rem] md:rounded-[2rem] shadow-xl flex items-center justify-between">
               <div className="space-y-1">
-                <span className="inline-block bg-white/25 px-2.5 py-0.5 rounded-full text-[10px] font-bold text-stone-100 mb-1">우리 동네 산책 크루 🐾</span>
+                <span className="inline-block bg-white/25 px-2.5 py-0.5 rounded-full text-[10px] font-bold text-rose-100 mb-1">우리 동네 산책 크루 🐾</span>
                 <h2 className="text-xl md:text-2xl font-black tracking-tight">동네 산책 메이트 찾기</h2>
-                <p className="text-[11px] text-stone-100/90">이웃과 함께하는 안전하고 신나는 반려견 산책 모임</p>
+                <p className="text-[11px] text-rose-100/90">이웃과 함께하는 안전하고 신나는 반려견 산책 모임</p>
               </div>
               <div className="text-4xl hidden sm:block bg-white/10 p-2.5 rounded-2xl">🐕</div>
             </div>
 
             {/* 작성 폼 */}
-            <div className="bg-white p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] shadow-md border border-stone-100">
-              <h3 className="text-xs md:text-sm font-black text-stone-900 mb-3 flex items-center gap-2">✍️ {editingPostId ? '글 수정하기' : '새 산책 메이트 모집'}</h3>
+            <div className="bg-white p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] shadow-md border border-rose-100/80">
+              <h3 className="text-xs md:text-sm font-black text-rose-950 mb-3 flex items-center gap-2">✍️ {editingPostId ? '글 수정하기' : '새 산책 메이트 모집'}</h3>
               {currentUser ? (
                 <form onSubmit={handleCreateWalkPost} className="space-y-3">
                   <div className="flex items-center gap-2 justify-end">
                     <button
                       type="button" onClick={() => setNewPostType('동네산책 같이해요')}
-                      className={`px-3 py-1.5 rounded-xl text-[11px] font-bold ${newPostType === '동네산책 같이해요' ? 'bg-[#7c6a65] text-white' : 'bg-stone-100 text-stone-600'}`}
+                      className={`px-3 py-1.5 rounded-xl text-[11px] font-bold ${newPostType === '동네산책 같이해요' ? 'bg-rose-600 text-white' : 'bg-stone-100 text-stone-600'}`}
                     >
                       🐾 동네산책 같이해요
                     </button>
@@ -909,19 +911,18 @@ function AppMain() {
                   ></textarea>
                   <div className="flex justify-end gap-2">
                     {editingPostId && <button type="button" onClick={handleCancelEdit} className="px-4 py-2 bg-stone-100 text-xs font-bold rounded-xl">취소</button>}
-                    {/* 변경 완료: 동네산책 글쓰기 [등록하기] 버튼 색상 변경 (소프트 딥 로즈 브라운) */}
-                    <button type="submit" className="px-5 py-2 bg-[#b57c70] hover:bg-[#9a6459] text-white text-xs font-black rounded-xl shadow-md">{editingPostId ? '수정 완료' : '등록하기'}</button>
+                    <button type="submit" className="px-5 py-2 bg-rose-600 text-white text-xs font-black rounded-xl shadow-md">{editingPostId ? '수정 완료' : '등록하기'}</button>
                   </div>
                 </form>
               ) : (
                 <div className="py-6 text-center bg-stone-50 rounded-xl border border-dashed border-stone-200 text-xs text-stone-500">
-                  🔒 로그인이 필요한 service입니다.
+                  🔒 로그인이 필요한 서비스입니다.
                 </div>
               )}
             </div>
 
             {/* 필터 세션 */}
-            <div className="flex flex-col gap-2 bg-white p-3 rounded-xl border border-stone-200 shadow-xs">
+            <div className="flex flex-col gap-2 bg-white p-3 rounded-xl border border-rose-100 shadow-xs">
               <div className="flex gap-1 overflow-x-auto pb-1 no-scrollbar">
                 {['all', '동네산책 같이해요', '산책 대행'].map(t => (
                   <button
@@ -932,29 +933,28 @@ function AppMain() {
                   </button>
                 ))}
               </div>
-              {/* 변경 완료: [전체글] / [내 동네] 필터 버튼을 편안한 무드의 밀크티 브라운 계열로 교체 */}
               <div className="flex gap-1 border-t border-stone-100 pt-2">
-                <button onClick={() => setWalkScopeFilter('all')} className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg ${walkScopeFilter === 'all' ? 'bg-[#7c6a65] text-white' : 'bg-stone-50 text-stone-600'}`}>🌍 전체글</button>
-                <button onClick={() => setWalkScopeFilter('local')} className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg ${walkScopeFilter === 'local' ? 'bg-[#7c6a65] text-white' : 'bg-stone-50 text-stone-600'}`}>🏠 내 동네 (10km)</button>
+                <button onClick={() => setWalkScopeFilter('all')} className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg ${walkScopeFilter === 'all' ? 'bg-rose-600 text-white' : 'bg-stone-50 text-stone-600'}`}>🌍 전체글</button>
+                <button onClick={() => setWalkScopeFilter('local')} className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg ${walkScopeFilter === 'local' ? 'bg-rose-600 text-white' : 'bg-stone-50 text-stone-600'}`}>🏠 내 동네 (10km)</button>
               </div>
             </div>
 
             {/* 실시간 피드 목록 */}
             <div className="space-y-3">
               {filteredWalkPosts.map(post => (
-                <div key={post.id} className="bg-white p-4 md:p-6 rounded-[1.5rem] shadow-sm border border-stone-100 space-y-3">
+                <div key={post.id} className="bg-white p-4 md:p-6 rounded-[1.5rem] shadow-sm border border-rose-100/80 space-y-3">
                   <div className="flex items-center justify-between border-b border-stone-50 pb-2">
                     <div className="flex items-center gap-2">
                       <img src={post.authorImg} alt="유저" className="w-8 h-8 rounded-full object-cover" />
                       <div>
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs font-black text-stone-900">{post.author}</span>
-                          <span className="text-[9px] font-extrabold px-1 bg-stone-100 text-stone-600 rounded">{post.authorGender}</span>
+                          <span className="text-[9px] font-extrabold px-1 bg-rose-50 text-rose-600 rounded">{post.authorGender}</span>
                         </div>
                         <span className="text-[9px] text-stone-400 block">{formatRelativeTime(post.timestamp)}</span>
                       </div>
                     </div>
-                    <span className={`text-[9px] font-bold text-white px-2 py-0.5 rounded-full ${post.postType === '산책 대행' ? 'bg-sky-600' : 'bg-[#7c6a65]'}`}>{post.postType}</span>
+                    <span className={`text-[9px] font-bold text-white px-2 py-0.5 rounded-full ${post.postType === '산책 대행' ? 'bg-sky-600' : 'bg-rose-600'}`}>{post.postType}</span>
                   </div>
 
                   <div className="space-y-1">
@@ -962,6 +962,7 @@ function AppMain() {
                     <p className="text-[11px] md:text-xs text-stone-600 whitespace-pre-wrap">{post.content}</p>
                   </div>
 
+                  {/* 댓글 섹션 */}
                   <div className="bg-stone-50/70 p-3 rounded-xl space-y-2">
                     <span className="text-[10px] font-black text-stone-500 block">댓글 ({post.comments.length})</span>
                     <div className="space-y-1.5 max-h-32 overflow-y-auto">
@@ -999,14 +1000,14 @@ function AppMain() {
 
       </div>
 
-      {/* 변경 완료: 📱 모바일 하단 플로팅 탭바 활성화 색상 변경 (부드러운 밀크티 브라운 `#7c6a65`) */}
-      <nav className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-sm h-14 bg-white/90 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-around z-50 px-3 shadow-[0_12px_32px_rgba(124,106,101,0.15)]">
+      {/* 4번 수정: 트렌디하고 세련된 라운드 하단 플로팅 탭바 */}
+      <nav className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-sm h-14 bg-white/90 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-around z-50 px-3 shadow-[0_12px_32px_rgba(225,29,72,0.18)]">
         <button 
           onClick={() => setMainTab('map')}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full text-xs font-black transition-all ${
             mainTab === 'map' 
-              ? 'bg-[#7c6a65] text-white shadow-md' 
-              : 'text-stone-400 hover:text-stone-700'
+              ? 'bg-rose-600 text-white shadow-md shadow-rose-200' 
+              : 'text-stone-400 hover:text-rose-600'
           }`}
         >
           <span className="text-base">🗺️</span>
@@ -1016,8 +1017,8 @@ function AppMain() {
           onClick={() => setMainTab('walk')}
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full text-xs font-black transition-all ${
             mainTab === 'walk' 
-              ? 'bg-[#7c6a65] text-white shadow-md' 
-              : 'text-stone-400 hover:text-stone-700'
+              ? 'bg-rose-600 text-white shadow-md shadow-rose-200' 
+              : 'text-stone-400 hover:text-rose-600'
           }`}
         >
           <span className="text-base">🐾</span>
@@ -1028,17 +1029,17 @@ function AppMain() {
       {/* 회원정보 수정 모달 */}
       {isEditModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-5 max-w-xs w-full shadow-2xl space-y-3 border border-stone-100 animate-fade-in">
+          <div className="bg-white rounded-2xl p-5 max-w-xs w-full shadow-2xl space-y-3 border border-rose-100 animate-fade-in">
             <div className="flex items-center justify-between border-b border-stone-100 pb-2">
-              <h3 className="text-sm font-black text-stone-900">내 정보 수정</h3>
+              <h3 className="text-sm font-black text-rose-950">내 정보 수정</h3>
               <button onClick={() => setIsEditModalOpen(false)} className="text-stone-400 text-xs">✕</button>
             </div>
             {editError && <div className="text-[10px] text-rose-600 bg-rose-50 p-2 rounded-lg text-center font-bold">{editError}</div>}
             <form onSubmit={handleEditSubmit} className="space-y-3">
               <div className="flex flex-col items-center gap-1.5">
-                <img src={editProfileImg} alt="미리보기" className="w-12 h-12 rounded-full object-cover border-2 border-[#b57c70] shadow-sm" />
+                <img src={editProfileImg} alt="미리보기" className="w-12 h-12 rounded-full object-cover border-2 border-rose-500 shadow-sm" />
                 <input id="mo-upload" type="file" accept="image/*" onChange={handleEditImageChange} className="hidden" />
-                <label htmlFor="mo-upload" className="text-[10px] text-[#b57c70] font-bold cursor-pointer">사진 변경</label>
+                <label htmlFor="mo-upload" className="text-[10px] text-rose-600 font-bold cursor-pointer">사진 변경</label>
               </div>
               <div className="space-y-0.5">
                 <label className="text-[10px] font-bold text-stone-500">닉네임</label>
@@ -1056,7 +1057,7 @@ function AppMain() {
               </div>
               <div className="flex gap-2 pt-1">
                 <button type="button" onClick={() => setIsEditModalOpen(false)} className="flex-1 py-2 bg-stone-100 text-stone-600 text-xs font-bold rounded-lg">취소</button>
-                <button type="submit" className="flex-1 py-2 bg-[#b57c70] text-white text-xs font-black rounded-lg">저장</button>
+                <button type="submit" className="flex-1 py-2 bg-rose-600 text-white text-xs font-black rounded-lg">저장</button>
               </div>
             </form>
           </div>
