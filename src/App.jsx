@@ -5,7 +5,6 @@ import './App.css';
 
 const formatRelativeTime = (timestamp) => {
   if (!timestamp) return '방금 전';
-  
   const now = Date.now();
   const elapsedMinutes = Math.floor((now - timestamp) / (1000 * 60));
 
@@ -36,7 +35,6 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 function AppMain() {
   const [mainTab, setMainTab] = useState('map'); 
   
-  // 1번 수정: 최초 접속 시 자동으로 '테스트유저'가 되지 않도록 기본값을 비워둡니다.
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       return localStorage.getItem('pet_map_user') || ''; 
@@ -45,7 +43,6 @@ function AppMain() {
     }
   });
 
-  // 1번 수정: 프로필 역시 로그인하지 않았다면 기본값으로 null을 가집니다.
   const [userProfile, setUserProfile] = useState(() => {
     try {
       const saved = localStorage.getItem('pet_map_user_profile');
@@ -63,28 +60,7 @@ function AppMain() {
   const [editProfileImg, setEditProfileImg] = useState('');
   const [editError, setEditError] = useState('');
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem('pet_map_user');
-    if (savedUser) setCurrentUser(savedUser);
-    const savedProfile = localStorage.getItem('pet_map_user_profile');
-    if (savedProfile) setUserProfile(JSON.parse(savedProfile));
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-        },
-        (error) => {
-          console.error('위치 정보를 가져오지 못했습니다.', error);
-        },
-        { enableHighAccuracy: true }
-      );
-    }
-  }, []);
-
+  // 전체 유저가 작성한 글을 localStorage에서 실시간 공유 동기화
   const [walkPosts, setWalkPosts] = useState(() => {
     try {
       const savedPosts = localStorage.getItem('pet_map_walk_posts');
@@ -135,6 +111,37 @@ function AppMain() {
     activeFilterRef.current = activeFilter;
   }, [activeFilter]);
 
+  useEffect(() => {
+    const savedUser = localStorage.getItem('pet_map_user');
+    if (savedUser) setCurrentUser(savedUser);
+    const savedProfile = localStorage.getItem('pet_map_user_profile');
+    if (savedProfile) setUserProfile(JSON.parse(savedProfile));
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.error('위치 정보를 가져오지 못했습니다.', error);
+        },
+        { enableHighAccuracy: true }
+      );
+    }
+
+    // 다른 브라우저 탭이나 유저가 localStorage 변경 시 실시간으로 피드 갱신 반영
+    const handleStorageChange = (e) => {
+      if (e.key === 'pet_map_walk_posts') {
+        setWalkPosts(e.newValue ? JSON.parse(e.newValue) : []);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const filterOptions = [
     { id: 'all', label: '✨ 전체' },
     { id: 'hospital', label: '🏥 동물병원', keyword: '동물병원' },
@@ -146,7 +153,7 @@ function AppMain() {
 
   const handleKakaoLogin = () => {
     const REST_API_KEY = "134311da296aade3f691343d92d9f168";
-    const REDIRECT_URI = "https://pet-walk-map.vercel.app/oauth/kakao/callback";
+    const REDIRECT_URI = "http://localhost:5173/oauth/kakao/callback";
     const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
     window.location.href = kakaoAuthUrl;
   };
@@ -157,6 +164,7 @@ function AppMain() {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('pet_map_user');
     localStorage.removeItem('pet_map_user_profile');
+    alert('로그아웃 되었습니다. 👋');
   };
 
   const openEditModal = () => {
@@ -190,16 +198,6 @@ function AppMain() {
     if (!trimmed || !editDogBreed.trim()) {
       setEditError('닉네임과 강아지 종을 모두 입력해주세요.');
       return;
-    }
-
-    if (trimmed !== userProfile?.nickname) {
-      const allUsers = JSON.parse(localStorage.getItem('pet_map_all_users') || '[]');
-      if (allUsers.includes(trimmed)) {
-        setEditError('이미 사용 중인 닉네임입니다.');
-        return;
-      }
-      allUsers.push(trimmed);
-      localStorage.setItem('pet_map_all_users', JSON.stringify(allUsers));
     }
 
     const updatedProfile = {
@@ -575,11 +573,7 @@ function AppMain() {
         return post;
       });
       setWalkPosts(updated);
-      try {
-        localStorage.setItem('pet_map_walk_posts', JSON.stringify(updated));
-      } catch (err) {
-        console.error(err);
-      }
+      localStorage.setItem('pet_map_walk_posts', JSON.stringify(updated));
       setEditingPostId(null);
       setNewPostTitle('');
       setNewPostContent('');
@@ -604,11 +598,7 @@ function AppMain() {
 
     const updated = [newPost, ...walkPosts];
     setWalkPosts(updated);
-    try {
-      localStorage.setItem('pet_map_walk_posts', JSON.stringify(updated));
-    } catch (err) {
-      console.error(err);
-    }
+    localStorage.setItem('pet_map_walk_posts', JSON.stringify(updated));
 
     setNewPostTitle('');
     setNewPostContent('');
@@ -641,11 +631,7 @@ function AppMain() {
     if (window.confirm('정말 이 산책 모집글을 삭제하시겠습니까?')) {
       const updated = walkPosts.filter(p => p.id !== postId);
       setWalkPosts(updated);
-      try {
-        localStorage.setItem('pet_map_walk_posts', JSON.stringify(updated));
-      } catch (err) {
-        console.error(err);
-      }
+      localStorage.setItem('pet_map_walk_posts', JSON.stringify(updated));
       if (editingPostId === postId) handleCancelEdit();
     }
   };
@@ -675,14 +661,11 @@ function AppMain() {
     });
 
     setWalkPosts(updatedPosts);
-    try {
-      localStorage.setItem('pet_map_walk_posts', JSON.stringify(updatedPosts));
-    } catch (e) {
-      console.error(e);
-    }
+    localStorage.setItem('pet_map_walk_posts', JSON.stringify(updatedPosts));
     setCommentInputs(prev => ({ ...prev, [postId]: '' }));
   };
 
+  // 피드 연동 버그 수정: 특정 작성자 필터링 없이 다중 유저 데이터 전체 출력 보장
   const filteredWalkPosts = walkPosts.filter(post => {
     if (walkFilterType !== 'all' && post.postType !== walkFilterType) return false;
     if (walkScopeFilter === 'local') {
@@ -717,17 +700,17 @@ function AppMain() {
           </button>
         </div>
 
-        {/* 2번 수정: 우측 상단 카카오 로그인 탭 상태 분기 명확화 */}
+        {/* 1번 수정: 우측 상단 로그인 상태바 및 직관적인 로그아웃 레이아웃 */}
         <div className="flex items-center gap-3">
-          {currentUser && userProfile ? (
-            <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-rose-100 shadow-xs">
+          {currentUser ? (
+            <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-rose-100 shadow-sm">
               <div className="flex items-center gap-2">
-                <img src={userProfile?.profileImg} alt="프로필" className="w-7 h-7 rounded-full object-cover border border-rose-200" />
-                <span className="text-xs font-bold text-rose-950"><b>{currentUser}</b>님</span>
+                <img src={userProfile?.profileImg || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150'} alt="프로필" className="w-7 h-7 rounded-full object-cover border border-rose-200" />
+                <span className="text-xs font-bold text-stone-700"><b className="text-rose-600">{currentUser}</b>님</span>
               </div>
               <div className="flex items-center gap-2 pl-2 border-l border-stone-200">
-                <button onClick={openEditModal} className="text-[11px] font-bold text-rose-600 hover:underline">정보수정</button>
-                <button onClick={handleLogout} className="text-[11px] font-bold text-stone-400 hover:text-rose-600">로그아웃</button>
+                <button onClick={openEditModal} className="text-[11px] font-bold text-stone-500 hover:text-rose-600 transition-colors">정보수정</button>
+                <button onClick={handleLogout} className="text-[11px] font-bold text-rose-600 hover:text-rose-700 transition-colors bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-100">로그아웃</button>
               </div>
             </div>
           ) : (
@@ -741,10 +724,11 @@ function AppMain() {
       {/* 모바일 최상단 유저 간이 바 */}
       <div className="md:hidden flex h-12 bg-white/95 border-b border-rose-100 items-center justify-between px-4 z-40 shrink-0">
         <span className="text-xs font-black text-rose-900 tracking-wider">🐾 댕냥크루</span>
-        {currentUser && userProfile ? (
+        {currentUser ? (
           <div className="flex items-center gap-2">
             <span className="text-[11px] text-stone-600 font-bold">{currentUser}님</span>
-            <button onClick={openEditModal} className="text-[10px] text-rose-600 font-bold px-2 py-0.5 bg-rose-50 rounded-md border border-rose-100">수정</button>
+            <button onClick={openEditModal} className="text-[10px] text-stone-500 font-bold px-2 py-0.5 bg-stone-50 rounded-md border border-stone-100">수정</button>
+            <button onClick={handleLogout} className="text-[10px] text-rose-600 font-bold px-2 py-0.5 bg-rose-50 rounded-md border border-rose-200">로그아웃</button>
           </div>
         ) : (
           <button onClick={handleKakaoLogin} className="text-[10px] font-extrabold bg-[#FEE500] px-2.5 py-1 rounded-lg">💬 로그인</button>
