@@ -35,23 +35,21 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 
 function AppMain() {
   const [mainTab, setMainTab] = useState('map'); 
+  
+  // 1번 수정: 최초 접속 시 자동으로 '테스트유저'가 되지 않도록 기본값을 비워둡니다.
   const [currentUser, setCurrentUser] = useState(() => {
     try {
-      return localStorage.getItem('pet_map_user') || '테스트유저'; 
+      return localStorage.getItem('pet_map_user') || ''; 
     } catch (e) {
       return '';
     }
   });
 
+  // 1번 수정: 프로필 역시 로그인하지 않았다면 기본값으로 null을 가집니다.
   const [userProfile, setUserProfile] = useState(() => {
     try {
       const saved = localStorage.getItem('pet_map_user_profile');
-      return saved ? JSON.parse(saved) : {
-        nickname: '테스트유저',
-        gender: '여성',
-        dogBreed: '말티즈',
-        profileImg: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150'
-      };
+      return saved ? JSON.parse(saved) : null;
     } catch (e) {
       return null;
     }
@@ -158,6 +156,7 @@ function AppMain() {
     setUserProfile(null);
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('pet_map_user');
+    localStorage.removeItem('pet_map_user_profile');
   };
 
   const openEditModal = () => {
@@ -432,7 +431,6 @@ function AppMain() {
       clickable: true
     });
 
-    // 1단계 수정: 상세보기 클릭 시에만 사이드바 오픈
     detailBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       setSelectedPlace({
@@ -446,7 +444,7 @@ function AppMain() {
         reviews: reviewsStorageRef.current[place.id] || []
       });
       setActiveTab('info');
-      detailOverlay.setMap(null); // 사이드바가 켜질 때 말풍선은 닫음
+      detailOverlay.setMap(null); 
     });
 
     const arrow = document.createElement('div');
@@ -460,7 +458,6 @@ function AppMain() {
     overlayContent.appendChild(cardSimple);
     overlayContent.appendChild(arrow);
 
-    // 1단계 수정: 발자국 누르면 말풍선(Overlay)만 노출
     markerContent.onclick = (e) => {
       e.stopPropagation();
       if (currentOverlayRef.current) currentOverlayRef.current.setMap(null); 
@@ -720,8 +717,9 @@ function AppMain() {
           </button>
         </div>
 
+        {/* 2번 수정: 우측 상단 카카오 로그인 탭 상태 분기 명확화 */}
         <div className="flex items-center gap-3">
-          {currentUser ? (
+          {currentUser && userProfile ? (
             <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-rose-100 shadow-xs">
               <div className="flex items-center gap-2">
                 <img src={userProfile?.profileImg} alt="프로필" className="w-7 h-7 rounded-full object-cover border border-rose-200" />
@@ -733,7 +731,7 @@ function AppMain() {
               </div>
             </div>
           ) : (
-            <button onClick={handleKakaoLogin} className="flex items-center justify-center gap-2 bg-[#FEE500] text-[#191919] font-extrabold text-xs py-2.5 px-4 rounded-2xl shadow-md">
+            <button onClick={handleKakaoLogin} className="flex items-center justify-center gap-2 bg-[#FEE500] text-[#191919] font-extrabold text-xs py-2.5 px-4 rounded-2xl shadow-md transition-all hover:opacity-90">
               💬 카카오로 시작하기
             </button>
           )}
@@ -743,7 +741,7 @@ function AppMain() {
       {/* 모바일 최상단 유저 간이 바 */}
       <div className="md:hidden flex h-12 bg-white/95 border-b border-rose-100 items-center justify-between px-4 z-40 shrink-0">
         <span className="text-xs font-black text-rose-900 tracking-wider">🐾 댕냥크루</span>
-        {currentUser ? (
+        {currentUser && userProfile ? (
           <div className="flex items-center gap-2">
             <span className="text-[11px] text-stone-600 font-bold">{currentUser}님</span>
             <button onClick={openEditModal} className="text-[10px] text-rose-600 font-bold px-2 py-0.5 bg-rose-50 rounded-md border border-rose-100">수정</button>
@@ -784,7 +782,7 @@ function AppMain() {
             </div>
           </div>
 
-          {/* 플레이스 상세 정보 사이드바 (모바일 짤림 방지 및 스크롤바 삭제 보완) */}
+          {/* 플레이스 상세 정보 사이드바 */}
           {selectedPlace && (
             <div className="pet-sidebar fixed md:absolute bottom-0 md:top-0 left-0 right-0 md:right-auto md:w-96 max-h-[60vh] md:max-h-full bg-white rounded-t-[2rem] md:rounded-none shadow-2xl flex flex-col z-40 animate-slide-in overflow-hidden">
               <button className="pet-sidebar-close absolute top-4 right-4 text-stone-400 font-bold z-50 p-2" onClick={() => setSelectedPlace(null)}>✕</button>
@@ -805,7 +803,6 @@ function AppMain() {
                 </button>
               </div>
 
-              {/* 2번 & 3번 요구사항 수정: 내부 컨테이너 스크롤 지원 및 스크롤바 히든 */}
               <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-4">
                 {activeTab === 'info' ? (
                   <div className="space-y-3 py-1">
@@ -826,7 +823,6 @@ function AppMain() {
                     </div>
                   </div>
                 ) : (
-                  // 3번 수정: 집사토크 댓글 리스트 스크롤 영역과 하단 댓글창 배치 분리 고정
                   <div className="flex flex-col h-full min-h-[25vh]">
                     <div className="flex-1 overflow-y-auto no-scrollbar space-y-2.5 pr-1 pb-2">
                       {!selectedPlace.reviews || selectedPlace.reviews.length === 0 ? (
@@ -1000,7 +996,7 @@ function AppMain() {
 
       </div>
 
-      {/* 4번 수정: 트렌디하고 세련된 라운드 하단 플로팅 탭바 */}
+      {/* 하단 플로팅 탭바 */}
       <nav className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-sm h-14 bg-white/90 backdrop-blur-xl border border-white/40 rounded-full flex items-center justify-around z-50 px-3 shadow-[0_12px_32px_rgba(225,29,72,0.18)]">
         <button 
           onClick={() => setMainTab('map')}
